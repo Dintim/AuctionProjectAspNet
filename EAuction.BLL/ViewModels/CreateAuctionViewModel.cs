@@ -9,7 +9,7 @@ namespace EAuction.BLL.ViewModels
 {
     public class CreateAuctionViewModel
     {
-        public Guid AuctionTypeId { get; set; }
+        public string AuctionType { get; set; }
         public string Description { get; set; }
         public string ShippingAddress { get; set; }
         public string ShippingConditions { get; set; }

@@ -6,6 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using EAuction.Core.DataModels;
+using EAuction.BLL.ExternalModels;
+using System.Net;
+using Newtonsoft.Json;
 
 namespace EAuction.BLL.Sevices
 {
@@ -16,6 +19,8 @@ namespace EAuction.BLL.Sevices
 
         public void OpenOrganization(RegisterOrganizationViewModel model)
         {
+            GeoLocationInfo geoLocationInfo = GetGeolocationInfo();
+
             if (model == null)
                 throw new Exception($"{typeof(RegisterOrganizationViewModel).Name} is null");
 
@@ -35,6 +40,7 @@ namespace EAuction.BLL.Sevices
 
             Organization organization = new Organization()
             {
+                Id = Guid.NewGuid(),
                 FullName = model.FullName,
                 IdentificationNumber = model.IdentificationNumber,
                 RegistrationDate = DateTime.Now,
@@ -48,6 +54,7 @@ namespace EAuction.BLL.Sevices
                 var ceoPosition = _applicationDbContext.EmployeePositions.Where(p => p.Name == "CEO").Select(p => p.Id);
                 Employee employee = new Employee()
                 {
+                    Id = Guid.NewGuid(),
                     FirstName = model.CeoFirstName,
                     LastName = model.CeoLastName,
                     DoB = model.CeoDoB,
@@ -56,13 +63,58 @@ namespace EAuction.BLL.Sevices
                 };
                 _applicationDbContext.Employees.Add(employee);
 
+                ApplicationUser user = new ApplicationUser()
+                {
+                    Id = Guid.NewGuid(),
+                    Email = model.CeoEmail,
+                    IsActive = true,
+                    FailedSignInCount = 0,
+                    CreatedDate = DateTime.Now,
+                    AssosiatedEmployeeId = employee.Id
+                };
+                _identityDbContext.ApplicationUsers.Add(user);
 
+                ApplicationUserPasswordHistory userPasswordHistory = new ApplicationUserPasswordHistory()
+                {
+                    Id = Guid.NewGuid(),
+                    SetupDate = DateTime.Now,
+                    Password = model.Password,
+                    ApplicationUserId = user.Id
+                };
+                _identityDbContext.ApplicationUserPasswordHistories.Add(userPasswordHistory);
 
-            }
-                
-
-
+                ApplicationUserSignInHistory userSignInHistory = new ApplicationUserSignInHistory()
+                {
+                    Id = Guid.NewGuid(),
+                    SignInTime = DateTime.Now,
+                    MachineIp = geoLocationInfo.ip,
+                    IpToGeoCountry = geoLocationInfo.country_name,
+                    IpToGeoCity = geoLocationInfo.city,
+                    IpToGeoLatitude = geoLocationInfo.latitude,
+                    IpToGeoLongitude = geoLocationInfo.longitude,
+                    ApplicationUserId = user.Id
+                };
+                _identityDbContext.ApplicationUserSignInHistories.Add(userSignInHistory);
+            }             
+            
             _applicationDbContext.SaveChanges();
+        }
+
+
+        public GeoLocationInfo GetGeolocationInfo()
+        {
+            WebClient webClient = new WebClient();
+            string externalIp = webClient
+                .DownloadString("http://icanhazip.com");
+
+            string ipStackAccessKey = "cb6a8892805bdd4727b7669b1f584318";
+            string ipStackUrl = $"api.ipstack.com/{externalIp}?access_key={ipStackAccessKey}";
+            ipStackUrl = "http://" + ipStackUrl;
+
+            string ipInfoAsJson = webClient.DownloadString(ipStackUrl);
+
+            GeoLocationInfo geoLocationInfo = JsonConvert.DeserializeObject<GeoLocationInfo>(ipInfoAsJson);
+            return geoLocationInfo;
         }
 
 
