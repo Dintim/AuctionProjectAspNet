@@ -10,10 +10,12 @@ namespace Auction.ClientUI.Controllers
     public class HomeController : Controller
     {
         ApplicationDbContext db = new ApplicationDbContext();
+        IdentityDbContext identityDb = new IdentityDbContext();
         
         public ActionResult Index()
         {
             db.Database.CreateIfNotExists();
+            identityDb.Database.CreateIfNotExists();
             return View();
         }
 

@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
-namespace EAuction.Infrastructure.ViewModels
+namespace EAuction.BLL.ViewModels
 {
     public class CreateAuctionViewModel
     {
@@ -17,6 +18,6 @@ namespace EAuction.Infrastructure.ViewModels
         public decimal MinPrice { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime FinishDate { get; set; }
-        //public List<HttpPostedFileBase> UploadFiles { get; set; }
+        public List<HttpPostedFileBase> UploadFiles { get; set; }
     }
 }

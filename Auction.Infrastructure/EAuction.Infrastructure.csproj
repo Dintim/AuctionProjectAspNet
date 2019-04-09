@@ -49,12 +49,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationDbContext.cs" />
+    <Compile Include="IdentityDbContext.cs" />
+    <Compile Include="Migrations\201904091356083_InitialCreate.cs" />
+    <Compile Include="Migrations\201904091356083_InitialCreate.Designer.cs">
+      <DependentUpon>201904091356083_InitialCreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201904091444152_ChangeVarType.cs" />
+    <Compile Include="Migrations\201904091444152_ChangeVarType.Designer.cs">
+      <DependentUpon>201904091444152_ChangeVarType.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ViewModels\CreateAuctionViewModel.cs" />
-    <Compile Include="ViewModels\EditEmployeeViewModel.cs" />
-    <Compile Include="ViewModels\EditOrganizationViewModel.cs" />
-    <Compile Include="ViewModels\RegisterEmployeeViewModel.cs" />
-    <Compile Include="ViewModels\RegisterOrganizationViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -65,6 +70,14 @@
       <Project>{F5D58F63-ADF1-400B-8E56-291116AF25D2}</Project>
       <Name>EAuction.Core</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\201904091356083_InitialCreate.resx">
+      <DependentUpon>201904091356083_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201904091444152_ChangeVarType.resx">
+      <DependentUpon>201904091444152_ChangeVarType.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

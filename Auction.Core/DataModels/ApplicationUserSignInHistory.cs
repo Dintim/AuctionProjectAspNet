@@ -14,7 +14,7 @@ namespace EAuction.Core.DataModels
         public string IpToGeoCountry { get; set; }
         public string IpToGeoCity { get; set; }
         public double IpToGeoLatitude { get; set; }
-        public string IpToGeoLongitude { get; set; }
+        public double IpToGeoLongitude { get; set; }
 
         public Guid ApplicationUserId { get; set; }
         public ApplicationUser ApplicationUser { get; set; }

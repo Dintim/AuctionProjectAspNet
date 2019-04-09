@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Web;
 
 
-namespace EAuction.Infrastructure.ViewModels
+namespace EAuction.BLL.ViewModels
 {
     public class EditOrganizationViewModel
     {
@@ -17,6 +17,6 @@ namespace EAuction.Infrastructure.ViewModels
         public string Email { get; set; }
         public string Contacts { get; set; }
         public string Site { get; set; }
-        //public List<HttpPostedFileBase> UploadFiles { get; set; }
+        public List<HttpPostedFileBase> UploadFiles { get; set; }
     }
 }
