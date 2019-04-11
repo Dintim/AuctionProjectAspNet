@@ -55,11 +55,14 @@
     <Compile Include="DataModels\Auction.cs" />
     <Compile Include="DataModels\AuctionFile.cs" />
     <Compile Include="DataModels\AuctionType.cs" />
+    <Compile Include="DataModels\AuctionWin.cs" />
     <Compile Include="DataModels\Bid.cs" />
+    <Compile Include="DataModels\BidStatus.cs" />
     <Compile Include="DataModels\Employee.cs" />
     <Compile Include="DataModels\EmployeePosition.cs" />
     <Compile Include="DataModels\Organization.cs" />
     <Compile Include="DataModels\OrganizationFile.cs" />
+    <Compile Include="DataModels\OrganizationRating.cs" />
     <Compile Include="DataModels\OrganizationType.cs" />
     <Compile Include="DataModels\Transaction.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

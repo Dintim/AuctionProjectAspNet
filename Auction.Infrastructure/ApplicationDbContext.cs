@@ -12,13 +12,16 @@ namespace EAuction.Infrastructure
     {
         public DbSet<Auction> Auctions { get; set; }
         public DbSet<AuctionFile> AuctionFiles { get; set; }
-        public DbSet<AuctionType> AuctionTypes { get; set; }        
+        public DbSet<AuctionType> AuctionTypes { get; set; }
+        public DbSet<AuctionWin> AuctionWins { get; set; }
         public DbSet<Bid> Bids { get; set; }
+        public DbSet<BidStatus> BidStatuses { get; set; }
         public DbSet<Employee> Employees { get; set; }
         public DbSet<EmployeePosition> EmployeePositions { get; set; }
         public DbSet<Organization> Organizations { get; set; }
         public DbSet<OrganizationFile> OrganizationFiles { get; set; }
         public DbSet<OrganizationType> OrganizationTypes { get; set; }
+        public DbSet<OrganizationRating> OrganizationRatings { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
@@ -33,6 +36,10 @@ namespace EAuction.Infrastructure
             modelBuilder.Entity<Organization>().HasMany(p => p.Employees).WithRequired(p => p.Organization).HasForeignKey(p => p.OrganizationId);
             modelBuilder.Entity<Organization>().HasMany(p => p.Bids).WithRequired(p => p.Organization).HasForeignKey(p => p.OrganizationId).WillCascadeOnDelete(false);
             modelBuilder.Entity<Organization>().HasMany(p => p.Transactions).WithRequired(p => p.Organization).HasForeignKey(p => p.OrganizationId);
+            modelBuilder.Entity<Organization>().HasMany(p => p.OrganizationRatings).WithRequired(p => p.Organization).HasForeignKey(p => p.OrganizationId);
+            modelBuilder.Entity<BidStatus>().HasMany(p => p.Bids).WithRequired(p => p.BidStatus).HasForeignKey(p => p.BidStatusId);
+            modelBuilder.Entity<Auction>().HasOptional(p => p.AuctionWin).WithRequired(p => p.Auction);
+            modelBuilder.Entity<Organization>().HasMany(p => p.AuctionWins).WithRequired(p => p.Organization).HasForeignKey(p => p.OrganizationId);
             base.OnModelCreating(modelBuilder);
         }
 
