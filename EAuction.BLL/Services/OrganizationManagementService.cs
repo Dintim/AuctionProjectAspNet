@@ -9,6 +9,7 @@ using EAuction.Core.DataModels;
 using EAuction.BLL.ExternalModels;
 using System.Net;
 using Newtonsoft.Json;
+using System.IO;
 
 namespace EAuction.BLL.Sevices
 {
@@ -98,6 +99,70 @@ namespace EAuction.BLL.Sevices
             }             
             
             _applicationDbContext.SaveChanges();
+        }
+
+        public void EditOrganizationInfo(OrganizationInfoViewModel model, Guid organizationId)
+        {
+            var organization = _applicationDbContext.Organizations.SingleOrDefault(p => p.Id == organizationId);
+            if (organization == null)
+                throw new Exception($"Организации с id {organizationId} таким в базе нет");
+
+            organization.FullName = model.FullName;
+            organization.IdentificationNumber = model.IdentificationNumber;
+            organization.OrganizationTypeId = _applicationDbContext.OrganizationTypes.SingleOrDefault(p => p.Name == model.OrganizationType).Id;
+            organization.Address = model.Address;
+            organization.Contacts = model.Contacts;
+            organization.Site = model.Site;
+            
+            if (model.UploadedFiles.Count != 0)
+            {
+                foreach (HttpPostedFileBase i in model.UploadedFiles)
+                {
+                    OrganizationFile file = new OrganizationFile();
+                    byte[] fileData = null;
+                    
+                    using (var binaryReader = new BinaryReader(i.InputStream))
+                    {
+                        fileData = binaryReader.ReadBytes(i.ContentLength);
+                    }
+
+                    file.OrganizationId = organizationId;
+                    file.FileName = i.FileName;
+                    file.Extension = i.ContentType;
+                    file.Content = fileData;
+                    file.CreatedAt = DateTime.Now;
+                    _applicationDbContext.OrganizationFiles.Add(file);
+                }                
+            }
+
+            _applicationDbContext.SaveChanges();
+        }
+
+
+        public OrganizationInfoViewModel GetOrganizationInfo(Guid organizationId)
+        {
+            var organization = _applicationDbContext.Organizations.Include("OrganizationRatings").SingleOrDefault(p => p.Id == organizationId);
+            if (organization == null)
+                throw new Exception($"Организации с таким id {organizationId} не существует");
+
+            var organizationFiles = _applicationDbContext.OrganizationFiles.Where(p => p.OrganizationId == organizationId).ToList();            
+            var averageScore = organization.OrganizationRatings.Average(p => p.Score);
+
+            OrganizationInfoViewModel model = new OrganizationInfoViewModel()
+            {
+                OrganizationId = organization.Id.ToString(),
+                FullName = organization.FullName,
+                IdentificationNumber = organization.IdentificationNumber,
+                OrganizationType = organization.OrganizationType.Name,
+                OrganizationRating = averageScore,
+                Address = organization.Address,
+                Email = organization.Email,
+                Contacts = organization.Contacts,
+                Site = organization.Site,
+                OrganizationFiles = organizationFiles
+            };
+
+            return model;
         }
 
 

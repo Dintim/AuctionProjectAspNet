@@ -73,6 +73,7 @@ namespace EAuction.BLL.Services
                     }
 
                     // установка массива байтов
+                    file.AuctionId = auction.Id;
                     file.FileName = i.FileName;
                     file.Extension = i.ContentType;
                     file.Content = fileData;
@@ -421,7 +422,39 @@ namespace EAuction.BLL.Services
             return auctionModels;
         }
 
+        public List<AuctionInfoViewModel> ShowAuctionsByOrganizationId(Guid organizationId)
+        {
+            var organization = _applicationDbContext.Organizations.SingleOrDefault(p => p.Id == organizationId);
+            if (organization == null)
+                throw new Exception($"Организации с таким id {organizationId} не существует");
 
+            var auctions = _applicationDbContext.Auctions.Where(p => p.OrganizationId != organizationId).ToList();
+            if (auctions.Count == 0)
+                throw new Exception($"Аукционов, созданных организацией с id {organizationId} на данный момент в базе нет");
+
+            List<AuctionInfoViewModel> auctionModels = new List<AuctionInfoViewModel>();
+            foreach (Auction item in auctions)
+            {
+                AuctionInfoViewModel model = new AuctionInfoViewModel()
+                {
+                    AuctionId = item.Id.ToString(),
+                    Status = item.Status.ToString(),
+                    AuctionType = item.AuctionType.Name,
+                    OrganizationName = item.Organization.FullName,
+                    ShippingAddress = item.ShippingAddress,
+                    ShippingConditions = item.ShippingConditions,
+                    StartPrice = item.StartPrice,
+                    PriceStep = item.PriceStep,
+                    MinPrice = item.MinPrice,
+                    StartDate = item.StartDate,
+                    FinishDate = item.FinishDate,
+                    AuctionFiles = item.AuctionFiles.ToList()
+                };
+                auctionModels.Add(model);
+            }
+
+            return auctionModels;
+        }
 
         public AuctionManagementService()
         {

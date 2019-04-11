@@ -87,7 +87,7 @@
     <Compile Include="ViewModels\BidInfoViewModel.cs" />
     <Compile Include="ViewModels\CreateAuctionViewModel.cs" />
     <Compile Include="ViewModels\EditEmployeeViewModel.cs" />
-    <Compile Include="ViewModels\EditOrganizationViewModel.cs" />
+    <Compile Include="ViewModels\OrganizationInfoViewModel.cs" />
     <Compile Include="ViewModels\MakeBidViewModel.cs" />
     <Compile Include="ViewModels\RegisterEmployeeViewModel.cs" />
     <Compile Include="ViewModels\RegisterOrganizationViewModel.cs" />
