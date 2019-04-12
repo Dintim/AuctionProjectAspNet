@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Web;
 
 namespace EAuction.BLL.ViewModels
 {
-    public class EditEmployeeViewModel
+    public class EmployeeInfoViewModel
     {
+        public string EmployeeId { get; set; }
+        public string PositionName { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public DateTime DoB { get; set; }

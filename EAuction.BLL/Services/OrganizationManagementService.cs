@@ -101,11 +101,11 @@ namespace EAuction.BLL.Sevices
             _applicationDbContext.SaveChanges();
         }
 
-        public void EditOrganizationInfo(OrganizationInfoViewModel model, Guid organizationId)
+        public void EditOrganizationInfo(OrganizationInfoViewModel model)
         {
-            var organization = _applicationDbContext.Organizations.SingleOrDefault(p => p.Id == organizationId);
+            var organization = _applicationDbContext.Organizations.SingleOrDefault(p => p.Id.ToString() == model.OrganizationId);
             if (organization == null)
-                throw new Exception($"Организации с id {organizationId} таким в базе нет");
+                throw new Exception($"Организации с id {model.OrganizationId} в базе нет");
 
             organization.FullName = model.FullName;
             organization.IdentificationNumber = model.IdentificationNumber;
@@ -126,7 +126,7 @@ namespace EAuction.BLL.Sevices
                         fileData = binaryReader.ReadBytes(i.ContentLength);
                     }
 
-                    file.OrganizationId = organizationId;
+                    file.OrganizationId = organization.Id;
                     file.FileName = i.FileName;
                     file.Extension = i.ContentType;
                     file.Content = fileData;
@@ -182,6 +182,26 @@ namespace EAuction.BLL.Sevices
             return geoLocationInfo;
         }
 
+        public void MakeTransaction(TransactionInfoViewModel model)
+        {
+            var organization = _applicationDbContext.Organizations
+                .SingleOrDefault(p => p.FullName == model.OrganizationName || p.Id.ToString()==model.OrganizationId);
+            if (organization == null)
+                throw new Exception($"Организации с таким наименованием {model.OrganizationName} в базе не существует");
+            var transactionType = model.TransactionTypeName == TransactionType.Deposit.ToString() ? TransactionType.Deposit : TransactionType.Withdraw;
+
+            Transaction transaction = new Transaction()
+            {
+                Id = Guid.NewGuid(),
+                TransactionType = transactionType,
+                Sum = model.Sum,
+                TransactionDate = DateTime.Now,
+                Description = model.Description,
+                OrganizationId = organization.Id
+            };
+            _applicationDbContext.Transactions.Add(transaction);
+            _applicationDbContext.SaveChanges();
+        }        
 
         public OrganizationManagementService()
         {

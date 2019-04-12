@@ -81,16 +81,18 @@
   <ItemGroup>
     <Compile Include="ExternalModels\GeoLocationInfo.cs" />
     <Compile Include="Services\AuctionManagementService.cs" />
+    <Compile Include="Services\EmployeeManagementService.cs" />
     <Compile Include="Services\OrganizationManagementService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ViewModels\AuctionInfoViewModel.cs" />
     <Compile Include="ViewModels\BidInfoViewModel.cs" />
     <Compile Include="ViewModels\CreateAuctionViewModel.cs" />
-    <Compile Include="ViewModels\EditEmployeeViewModel.cs" />
+    <Compile Include="ViewModels\EmployeeInfoViewModel.cs" />
     <Compile Include="ViewModels\OrganizationInfoViewModel.cs" />
     <Compile Include="ViewModels\MakeBidViewModel.cs" />
     <Compile Include="ViewModels\RegisterEmployeeViewModel.cs" />
     <Compile Include="ViewModels\RegisterOrganizationViewModel.cs" />
+    <Compile Include="ViewModels\TransactionInfoViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

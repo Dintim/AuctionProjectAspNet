@@ -10,7 +10,7 @@ namespace EAuction.Core.DataModels
     {
         public Guid Id { get; set; }
         public DateTime SetupDate { get; set; }
-        public DateTime InvalidatedDate { get; set; }
+        public DateTime ? InvalidatedDate { get; set; }
         public string Password { get; set; }
 
         public Guid ApplicationUserId { get; set; }

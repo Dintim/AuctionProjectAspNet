@@ -21,5 +21,6 @@ namespace EAuction.BLL.ViewModels
         public DateTime FinishDate { get; set; }
         public DateTime ? FinishDateAtActual { get; set; }
         public List<AuctionFile> AuctionFiles { get; set; }
+
     }
 }
