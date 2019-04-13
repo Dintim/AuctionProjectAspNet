@@ -9,7 +9,7 @@ namespace EAuction.BLL.ViewModels
     {
         public decimal Price { get; set; }
         public string Description { get; set; }
-        public Guid AuctionId { get; set; }
-        public Guid OrganizationId { get; set; }        
+        public string AuctionId { get; set; }
+        public string OrganizationId { get; set; }        
     }
 }

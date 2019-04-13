@@ -84,21 +84,36 @@ namespace EAuction.BLL.Services
             }
         }
 
-        public void MakeBidToAuction(MakeBidViewModel model)
+        public void MakeBidToAuction(MakeBidViewModel model, decimal bidCost) 
         {
             var bidExists = _applicationDbContext.Bids
                 .Any(p => p.Price == model.Price &&
-                p.AuctionId == model.AuctionId &&
+                p.AuctionId.ToString() == model.AuctionId &&
                 p.Description == model.Description &&
-                p.OrganizationId == model.OrganizationId);
+                p.OrganizationId.ToString() == model.OrganizationId);
 
             if (bidExists)
                 throw new Exception("Такая ставка уже существует");
 
-            var inValidPriceRange = _applicationDbContext
-                .Auctions.Where(p => p.Id == model.AuctionId &&
+            var organization = _applicationDbContext.Organizations.Include("Transactions").SingleOrDefault(p => p.Id.ToString() == model.OrganizationId);
+            if (organization == null)
+                throw new Exception("Такой организации в базе нет");
+
+            //проверка баланса на наличие средств для оплаты участия в аукционе
+            var organizationTransactions = organization.Transactions.ToList();
+            if (organizationTransactions.Count == 0)
+                throw new Exception($"У организации {organization.FullName} нулевой баланс");
+
+            var organizationBalance = organizationTransactions.Where(p => p.TransactionType == TransactionType.Deposit).Sum(p => p.Sum) -
+                organizationTransactions.Where(p => p.TransactionType == TransactionType.Withdraw).Sum(p => p.Sum);
+            if (organizationBalance < bidCost)
+                throw new Exception($"У организации {organization.FullName} не хватает средств на балансе для оплаты стоимости участия в аукционе");           
+            
+            //проверка ставки на соответствие мин, макс ценам и шагу цены
+            var inValidPriceRange = _applicationDbContext.Auctions
+                .Where(p => p.Id.ToString() == model.AuctionId &&
                 p.MinPrice < model.Price &&
-                p.StartPrice > model.Price);
+                p.StartPrice > model.Price).ToList();
 
             var inStepRange = inValidPriceRange
                 .Any(p => (p.StartPrice - model.Price) % p.PriceStep == 0);
@@ -110,20 +125,33 @@ namespace EAuction.BLL.Services
             if (activeBidStatus == null)
                 throw new Exception("Ошибка таблицы статусов ставок");
 
+            //делаем ставку и списываем деньги за участие
             Bid bid = new Bid()
             {
                 Id=Guid.NewGuid(),
                 Price = model.Price,
                 Description = model.Description,
-                AuctionId = model.AuctionId,
-                OrganizationId = model.OrganizationId,
+                AuctionId = new Guid(model.AuctionId),
+                OrganizationId = new Guid(model.OrganizationId),
                 CreatedDate = DateTime.Now,
-                BidStatusId=activeBidStatus
+                BidStatusId=activeBidStatus                
             };
-
             _applicationDbContext.Bids.Add(bid);
+
+            Transaction transaction = new Transaction()
+            {
+                Id = Guid.NewGuid(),
+                Sum = bidCost,
+                TransactionType = TransactionType.Withdraw,
+                TransactionDate = DateTime.Now,
+                OrganizationId = organization.Id,
+                Description = $"Withdraw participation cost for auction {model.AuctionId}"
+            };
+            _applicationDbContext.Transactions.Add(transaction);
+            
             _applicationDbContext.SaveChanges();
         }
+
 
         public void RevokeBidFromAuction(Guid bidId)
         {
@@ -138,6 +166,73 @@ namespace EAuction.BLL.Services
             bidExists.BidStatusId = revokeBidStatus;
             _applicationDbContext.SaveChanges();
         }
+
+
+        public void ElectWinnerInAuction(BidInfoViewModel model) //рейтинг, сумма на счете?
+        {
+            var auction = _applicationDbContext.Auctions.SingleOrDefault(p => p.Id.ToString() == model.AuctionId);
+            if (auction == null)
+                throw new Exception($"Аукциона с id {model.AuctionId} не существует");
+
+            var organization = _applicationDbContext.Organizations.Include("Transactions").Include("OrganizationRatings")
+                .SingleOrDefault(p => p.Id.ToString() == model.OrganizationId);
+            if (organization == null)
+                throw new Exception($"Организации с id {model.OrganizationId} не существует");
+
+            var IsAuctionCreator = _applicationDbContext.Auctions
+                .Any(p => p.Id.ToString() == model.AuctionId && p.OrganizationId.ToString() == model.OrganizationId);
+            if (IsAuctionCreator)
+                throw new Exception($"Организация-создатель аукциона {model.AuctionId} не может быть победителем данного аукциона");
+
+            //проверка суммы на балансе организации-победителя
+            var organizationTransactions = organization.Transactions.ToList();
+            if (organizationTransactions.Count == 0)
+                throw new Exception($"У организации {organization.FullName} нулевой баланс");
+
+            var organizationBalance = organizationTransactions.Where(p => p.TransactionType == TransactionType.Deposit).Sum(p => p.Sum) -
+                organizationTransactions.Where(p => p.TransactionType == TransactionType.Withdraw).Sum(p => p.Sum);           
+            if (organizationBalance < model.Price)
+                throw new Exception($"У организации {organization.FullName} не хватает средств на балансе для оплаты своей ставки на аукционе");
+
+            //проверка рейтинга организации-победителя
+            var organizationAvgScore = organization.OrganizationRatings.Average(p => p.Score);
+            if (organizationAvgScore < auction.MinRatingForParticipant)
+                throw new Exception($"У организации {organization.FullName} нет нужного рейтинга для участия в аукционе");
+
+                AuctionWin win = new AuctionWin()
+            {
+                Id = Guid.NewGuid(),
+                SetupDate = DateTime.Now,
+                AuctionId = new Guid(model.AuctionId),
+                OrganizationId = new Guid(model.OrganizationId)
+            };
+            _applicationDbContext.AuctionWins.Add(win);
+
+            Transaction transaction = new Transaction()
+            {
+                Id = Guid.NewGuid(),
+                TransactionType = TransactionType.Withdraw,
+                Sum = model.Price,
+                TransactionDate = DateTime.Now,
+                OrganizationId = new Guid(model.OrganizationId),
+                Description = $"Withdraw bid price for auction {model.AuctionId}"
+            };
+            _applicationDbContext.Transactions.Add(transaction);
+
+            _applicationDbContext.SaveChanges();
+        }
+
+
+        public void PutActualFinishDateToAuction(Guid auctionId, DateTime finishDate)
+        {
+            var auction = _applicationDbContext.Auctions.SingleOrDefault(p => p.Id == auctionId);
+            if (auction == null)
+                throw new Exception($"Аукциона с таким id {auctionId} не существует");
+
+            auction.FinishDateAtActual = finishDate;
+            _applicationDbContext.SaveChanges();
+        }
+
 
         public AuctionInfoViewModel GetAuctionInfo(Guid auctionId)
         {            
@@ -168,34 +263,10 @@ namespace EAuction.BLL.Services
             };
 
             return model;
-        }       
-
-        public void ElectWinnerInAuction(Guid auctionId, Guid organizationId) //рейтинг, сумма на счете?
-        {
-            var auction = _applicationDbContext.Auctions.SingleOrDefault(p => p.Id == auctionId);
-            if (auction == null)
-                throw new Exception($"Аукциона с id {auctionId} не существует");
-
-            var organization = _applicationDbContext.Organizations.SingleOrDefault(p => p.Id == organizationId);
-            if (organization == null)
-                throw new Exception($"Организации с id {organizationId} не существует");
-
-            var IsAuctionCreator = _applicationDbContext.Auctions.Any(p => p.Id == auctionId && p.OrganizationId == organizationId);
-            if (IsAuctionCreator)
-                throw new Exception($"Организация-создатель аукциона {auctionId} не может быть победителем данного аукциона");
-
-            AuctionWin win = new AuctionWin()
-            {
-                Id = Guid.NewGuid(),
-                SetupDate = DateTime.Now,
-                AuctionId = auctionId,
-                OrganizationId = organizationId
-            };
-            _applicationDbContext.AuctionWins.Add(win);
-            _applicationDbContext.SaveChanges();
         }
+        
 
-        public List<BidInfoViewModel> ShowAllBidsForAuction(Guid auctionId)
+        public List<BidInfoViewModel> GetAllBidsForAuction(Guid auctionId)
         {
             var auction = _applicationDbContext.Auctions.Include("Organizations").Include("Bids").SingleOrDefault(p => p.Id == auctionId);
             if (auction == null)
@@ -230,7 +301,7 @@ namespace EAuction.BLL.Services
             return bids;
         }
 
-        public List<BidInfoViewModel> ShowBidsForAuctionWithFitOrganizationRating(Guid auctionId)
+        public List<BidInfoViewModel> GetBidsForAuctionWithFitOrganizationRating(Guid auctionId)
         {
             var auction = _applicationDbContext.Auctions.Include("Organizations").Include("Bids").SingleOrDefault(p => p.Id == auctionId);
             if (auction == null)
@@ -277,7 +348,7 @@ namespace EAuction.BLL.Services
         }
 
 
-        public List<BidInfoViewModel> ShowBidsForAuctionWithFitOrganizationBalance(Guid auctionId)
+        public List<BidInfoViewModel> GetBidsForAuctionWithFitOrganizationBalance(Guid auctionId)
         {
             var auction = _applicationDbContext.Auctions.Include("Organizations").Include("Bids").SingleOrDefault(p => p.Id == auctionId);
             if (auction == null)
@@ -327,7 +398,7 @@ namespace EAuction.BLL.Services
         }
 
 
-        public List<BidInfoViewModel> ShowBidsForAuctionWithFitOrganizationRatingAndBalance(Guid auctionId)
+        public List<BidInfoViewModel> GetBidsForAuctionWithFitOrganizationRatingAndBalance(Guid auctionId)
         {
             var auction = _applicationDbContext.Auctions.Include("Organizations").Include("Bids").SingleOrDefault(p => p.Id == auctionId);
             if (auction == null)
@@ -387,7 +458,7 @@ namespace EAuction.BLL.Services
             return bids;
         }
 
-        public List<AuctionInfoViewModel> ShowActiveAuctionsExceptMine(Guid organizationId)
+        public List<AuctionInfoViewModel> GetActiveAuctionsExceptMine(Guid organizationId)
         {
             var organization = _applicationDbContext.Organizations.SingleOrDefault(p => p.Id == organizationId);
             if (organization==null)
@@ -422,7 +493,7 @@ namespace EAuction.BLL.Services
             return auctionModels;
         }
 
-        public List<AuctionInfoViewModel> ShowAuctionsByOrganizationId(Guid organizationId)
+        public List<AuctionInfoViewModel> GetAuctionsByOrganizationId(Guid organizationId)
         {
             var organization = _applicationDbContext.Organizations.SingleOrDefault(p => p.Id == organizationId);
             if (organization == null)

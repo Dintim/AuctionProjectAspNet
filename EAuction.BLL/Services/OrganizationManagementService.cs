@@ -166,6 +166,41 @@ namespace EAuction.BLL.Sevices
         }
 
 
+        public List<OrganizationInfoViewModel> GetAllOrganizationsInfo()
+        {
+            var organizations = _applicationDbContext.Organizations.ToList();
+            if (organizations.Count == 0)
+                throw new Exception("В базе нет ни одной организации");
+
+            List<OrganizationInfoViewModel> organizationInfos = new List<OrganizationInfoViewModel>();
+            foreach (Organization item in organizations)
+            {
+                var model = GetOrganizationInfo(item.Id);
+                organizationInfos.Add(model);
+            }
+
+            return organizationInfos;            
+        }
+
+
+        public void PutRatingScoreToOrganization(Guid organizationId, double score)
+        {
+            var organization = _applicationDbContext.Organizations.SingleOrDefault(p => p.Id == organizationId);
+            if (organization == null)
+                throw new Exception($"Организации с таким id {organizationId} не существует");
+
+            OrganizationRating rating = new OrganizationRating()
+            {
+                Id = Guid.NewGuid(),
+                Score = score,
+                OrganizationId = organization.Id
+            };
+            _applicationDbContext.OrganizationRatings.Add(rating);
+
+            _applicationDbContext.SaveChanges();
+        }
+
+
         public GeoLocationInfo GetGeolocationInfo()
         {
             WebClient webClient = new WebClient();

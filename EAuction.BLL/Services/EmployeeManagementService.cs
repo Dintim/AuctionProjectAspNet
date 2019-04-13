@@ -17,7 +17,7 @@ namespace EAuction.BLL.Services
         {
             var employee = _applicationDbContext.Employees.SingleOrDefault(p => p.Id == ceoId);
             if (employee==null)
-                throw new Exception($"Работника с id {ceoId} нет в системе");
+                throw new Exception($"Работника с id {ceoId} в базе нет");
 
             var isCeo = employee.EmployeePosition.Name == "CEO";
             if (!isCeo)
@@ -134,6 +134,45 @@ namespace EAuction.BLL.Services
             _identityDbContext.SaveChanges();
         }
 
+
+        public EmployeeInfoViewModel GetEmployeeInfo(Guid employeeId)
+        {
+            var employee = _applicationDbContext.Employees.SingleOrDefault(p => p.Id == employeeId);
+            if (employee == null)
+                throw new Exception($"Работника с id {employeeId} в базе нет");
+
+            EmployeeInfoViewModel model = new EmployeeInfoViewModel()
+            {
+                EmployeeId = employee.Id.ToString(),
+                PositionName = employee.EmployeePosition.Name,
+                FirstName = employee.FirstName,
+                LastName = employee.LastName,
+                DoB = employee.DoB,
+                Email = employee.Email
+            };
+
+            return model;
+        }
+
+        public List<EmployeeInfoViewModel> GetEmployeesInfoByOrganization(Guid organizationId)
+        {
+            var organization = _applicationDbContext.Organizations.Include("Employees").SingleOrDefault(p => p.Id == organizationId);
+            if (organization == null)
+                throw new Exception($"Организации с id {organizationId} в базе не существует");
+
+            var employees = organization.Employees.ToList();
+            if (employees.Count==0)
+                throw new Exception($"В организации {organization.FullName} нет ни одного сотрудника");
+
+            List<EmployeeInfoViewModel> employeeInfos = new List<EmployeeInfoViewModel>();
+            foreach (Employee item in employees)
+            {
+                var model = GetEmployeeInfo(item.Id);
+                employeeInfos.Add(model);
+            }
+
+            return employeeInfos;
+        }
 
 
 
