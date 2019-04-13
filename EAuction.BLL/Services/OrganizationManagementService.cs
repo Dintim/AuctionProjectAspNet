@@ -20,7 +20,7 @@ namespace EAuction.BLL.Sevices
 
         public void OpenOrganization(RegisterOrganizationViewModel model)
         {
-            GeoLocationInfo geoLocationInfo = GetGeolocationInfo();
+            var geoLocationInfo = GeoLocationInfo.GetGeolocationInfo();
 
             if (model == null)
                 throw new Exception($"{typeof(RegisterOrganizationViewModel).Name} is null");
@@ -199,23 +199,7 @@ namespace EAuction.BLL.Sevices
 
             _applicationDbContext.SaveChanges();
         }
-
-
-        public GeoLocationInfo GetGeolocationInfo()
-        {
-            WebClient webClient = new WebClient();
-            string externalIp = webClient
-                .DownloadString("http://icanhazip.com");
-
-            string ipStackAccessKey = "cb6a8892805bdd4727b7669b1f584318";
-            string ipStackUrl = $"api.ipstack.com/{externalIp}?access_key={ipStackAccessKey}";
-            ipStackUrl = "http://" + ipStackUrl;
-
-            string ipInfoAsJson = webClient.DownloadString(ipStackUrl);
-
-            GeoLocationInfo geoLocationInfo = JsonConvert.DeserializeObject<GeoLocationInfo>(ipInfoAsJson);
-            return geoLocationInfo;
-        }
+        
 
         public void MakeTransaction(TransactionInfoViewModel model)
         {
