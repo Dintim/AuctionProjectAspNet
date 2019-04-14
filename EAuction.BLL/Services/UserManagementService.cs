@@ -4,6 +4,7 @@ using EAuction.Core.DataModels;
 using EAuction.Infrastructure;
 using System;
 using System.Collections.Generic;
+using System.Device.Location;
 using System.Linq;
 using System.Web;
 using Twilio;
@@ -58,15 +59,42 @@ namespace EAuction.BLL.Services
             return true;
         }
 
+        /// <summary>
+        /// Проверка, находится ли юзер дальше 2000 км по сравнению с предыдущими 5 входами в систему
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public bool IsUserFarFromLast5SignIn(string userId) 
+        {           
+            var userSignInHistory = _identityDbContext.ApplicationUserSignInHistories
+                .Where(p => p.ApplicationUserId.ToString() == userId).ToList();
+            if (userSignInHistory.Count == 0)
+                throw new Exception($"У пользователя {userId} нет истории входов в базе");
 
-        public bool TwoFactorAuthentication(string userId, string userPhone)
-        {
-            //пользователь уже зашел-> 2FA с отправкой СМС
+            var currentSignIn = userSignInHistory.OrderByDescending(p => p.SignInTime).SingleOrDefault();
+            var userPrev5SignIn = userSignInHistory.Where(p=>p.SignInTime!= currentSignIn.SignInTime).OrderByDescending(p=>p.SignInTime).ToList();
+            if (userPrev5SignIn.Count == 0)
+                throw new Exception($"У пользователя {userId} нет истории предыдущих входов в базе");
 
+            double currentLatitude = currentSignIn.IpToGeoLatitude;
+            double currentLongitude = currentSignIn.IpToGeoLongitude;
+            GeoCoordinate currentCoordinate = new GeoCoordinate(currentLatitude, currentLongitude);
+            
+            int cnt = 1;            
+            foreach (ApplicationUserSignInHistory item in userPrev5SignIn)
+            {
+                if (cnt >= 5)
+                    break;
+                double latitude = item.IpToGeoLatitude;
+                double longitude = item.IpToGeoLongitude;
+                GeoCoordinate tmp = new GeoCoordinate(latitude, longitude);
 
+                if (currentCoordinate.GetDistanceTo(tmp) / 1000 > 2000)
+                    return true;
+                cnt++;
+            }
 
-
-            return true;
+            return false;
         }
 
 
@@ -86,6 +114,23 @@ namespace EAuction.BLL.Services
             );
             
             return smsCode;
+        }
+
+        /// <summary>
+        /// Cчитаем кол-во успешных авторизаций с момента последней смены пароля
+        /// </summary>
+        /// <param name="userId"></param>
+        public void MandatoryUserPasswordChange(string userId)
+        {
+            var userSignInHistory = _identityDbContext.ApplicationUserSignInHistories
+               .Where(p => p.ApplicationUserId.ToString() == userId).ToList();
+            if (userSignInHistory.Count == 0)
+                throw new Exception($"У пользователя {userId} нет истории входов в базе");
+
+            var currentSignIn = userSignInHistory.OrderByDescending(p => p.SignInTime).SingleOrDefault();
+            var userPrevSignIn = userSignInHistory.Where(p => p.SignInTime != currentSignIn.SignInTime).OrderByDescending(p => p.SignInTime).ToList();
+
+            
         }
 
         public UserManagementService()
