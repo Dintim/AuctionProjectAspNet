@@ -127,10 +127,14 @@ namespace EAuction.BLL.Services
             if (userSignInHistory.Count == 0)
                 throw new Exception($"У пользователя {userId} нет истории входов в базе");
 
-            var currentSignIn = userSignInHistory.OrderByDescending(p => p.SignInTime).SingleOrDefault();
-            var userPrevSignIn = userSignInHistory.Where(p => p.SignInTime != currentSignIn.SignInTime).OrderByDescending(p => p.SignInTime).ToList();
+            var currentPasswordSetupDate = _identityDbContext.ApplicationUserPasswordHistories
+                .SingleOrDefault(p => p.ApplicationUserId.ToString() == userId && p.InvalidatedDate == null);
+            if (currentPasswordSetupDate == null)
+                throw new Exception($"Аккаунт пользователя {userId} не активен");
 
-            
+            var userSignInCntWithCurrentPass = userSignInHistory.Where(p => p.SignInTime >= currentPasswordSetupDate.SetupDate).ToList();
+            if (userSignInCntWithCurrentPass.Count>50)
+                throw new Exception($"Пользователю {userId} необходимо сменить пароль");
         }
 
         public UserManagementService()
