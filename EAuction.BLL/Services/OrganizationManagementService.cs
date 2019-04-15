@@ -27,16 +27,22 @@ namespace EAuction.BLL.Sevices
 
             var checkOrganization = _applicationDbContext.Organizations
                 .SingleOrDefault(p => p.IdentificationNumber == model.IdentificationNumber || p.FullName == model.FullName);
-                /*(from o in _aplicationDbContext.Organizations
-                                    where o.IdentificationNumber == model.IdentificationNumber ||
-                                    o.FullName == model.FullName
-                                    select o).ToList(); */                
+            if (checkOrganization != null)
+                throw new Exception("Такая организация уже сущуствует в базе");
 
             var checkOrganizationType = _applicationDbContext.OrganizationTypes
                 .SingleOrDefault(p => p.Name == model.OrganizationType);
-
-            if (checkOrganization != null || checkOrganizationType == null)
-                throw new Exception("Model validation error!");
+            if (checkOrganizationType == null)
+            {
+                OrganizationType orgType = new OrganizationType()
+                {
+                    Id = Guid.NewGuid(),
+                    Name = model.OrganizationType
+                };
+                _applicationDbContext.OrganizationTypes.Add(orgType);
+                _applicationDbContext.SaveChanges();
+                checkOrganizationType = orgType;
+            }
 
 
             Organization organization = new Organization()
@@ -48,11 +54,24 @@ namespace EAuction.BLL.Sevices
                 OrganizationTypeId = checkOrganizationType.Id
             };
             _applicationDbContext.Organizations.Add(organization);
+            _applicationDbContext.SaveChanges();
 
             var checkEmployeeEmail = _applicationDbContext.Employees.Any(p => p.Email == model.CeoEmail);
             if (!checkEmployeeEmail)
             {
-                var ceoPosition = _applicationDbContext.EmployeePositions.Where(p => p.Name == "CEO").Select(p => p.Id);
+                var ceoPosition = _applicationDbContext.EmployeePositions.SingleOrDefault(p => p.Name == "CEO");
+                if (ceoPosition==null)
+                {
+                    EmployeePosition pos = new EmployeePosition()
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "CEO"
+                    };
+                    _applicationDbContext.EmployeePositions.Add(pos);
+                    _applicationDbContext.SaveChanges();
+                    ceoPosition = pos;
+                }
+
                 Employee employee = new Employee()
                 {
                     Id = Guid.NewGuid(),
@@ -60,9 +79,11 @@ namespace EAuction.BLL.Sevices
                     LastName = model.CeoLastName,
                     DoB = model.CeoDoB,
                     Email = model.CeoEmail,
-                    EmployeePositionId = new Guid(ceoPosition.ToString())
+                    EmployeePositionId = new Guid(ceoPosition.Id.ToString()),
+                    OrganizationId=organization.Id
                 };
                 _applicationDbContext.Employees.Add(employee);
+                _applicationDbContext.SaveChanges();
 
                 ApplicationUser user = new ApplicationUser()
                 {
@@ -74,6 +95,7 @@ namespace EAuction.BLL.Sevices
                     AssosiatedEmployeeId = employee.Id
                 };
                 _identityDbContext.ApplicationUsers.Add(user);
+                _identityDbContext.SaveChanges();
 
                 ApplicationUserPasswordHistory userPasswordHistory = new ApplicationUserPasswordHistory()
                 {
@@ -83,6 +105,7 @@ namespace EAuction.BLL.Sevices
                     ApplicationUserId = user.Id
                 };
                 _identityDbContext.ApplicationUserPasswordHistories.Add(userPasswordHistory);
+                _identityDbContext.SaveChanges();
 
                 ApplicationUserSignInHistory userSignInHistory = new ApplicationUserSignInHistory()
                 {
@@ -96,9 +119,9 @@ namespace EAuction.BLL.Sevices
                     ApplicationUserId = user.Id
                 };
                 _identityDbContext.ApplicationUserSignInHistories.Add(userSignInHistory);
-            }             
+                _identityDbContext.SaveChanges();
+            }                         
             
-            _applicationDbContext.SaveChanges();
         }
 
         public void EditOrganizationInfo(OrganizationInfoViewModel model)
