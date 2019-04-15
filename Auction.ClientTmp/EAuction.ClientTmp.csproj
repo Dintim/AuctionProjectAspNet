@@ -58,9 +58,17 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Auction.Core\EAuction.Core.csproj">
+      <Project>{f5d58f63-adf1-400b-8e56-291116af25d2}</Project>
+      <Name>EAuction.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Auction.Infrastructure\EAuction.Infrastructure.csproj">
       <Project>{EE34C242-2597-4F41-9C6A-99287121A3D1}</Project>
       <Name>EAuction.Infrastructure</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\EAuction.BLL\EAuction.BLL.csproj">
+      <Project>{213f7f82-1029-4e37-9e95-d76e660980c1}</Project>
+      <Name>EAuction.BLL</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

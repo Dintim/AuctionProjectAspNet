@@ -19,19 +19,32 @@ namespace EAuction.BLL.Services
             if (employee==null)
                 throw new Exception($"Работника с id {ceoId} в базе нет");
 
-            var isCeo = employee.EmployeePosition.Name == "CEO";
-            if (!isCeo)
+            var ceo = _applicationDbContext.EmployeePositions.SingleOrDefault(p => p.Name == "CEO");
+            if (ceo==null)
+            {
+                EmployeePosition pos = new EmployeePosition()
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "CEO"
+                };
+                _applicationDbContext.EmployeePositions.Add(pos);
+                _applicationDbContext.SaveChanges();
+                ceo = pos;
+            }
+            if (employee.EmployeePositionId!=ceo.Id)
                 throw new Exception($"Работник с id {ceoId} не может создавать аккаунты других сотрудников компании");
 
-            var positionId = _applicationDbContext.EmployeePositions.SingleOrDefault(p => p.Name == model.PositionName).Id;
-            if (positionId == null)
+            var position = _applicationDbContext.EmployeePositions.SingleOrDefault(p => p.Name == model.PositionName);
+            if (position == null)
             {
                 EmployeePosition pos = new EmployeePosition()
                 {
                     Id = Guid.NewGuid(),
                     Name = model.PositionName
                 };
-                positionId = pos.Id;
+                _applicationDbContext.EmployeePositions.Add(pos);
+                _applicationDbContext.SaveChanges();
+                position = pos;
             }            
 
             Employee newEmployee = new Employee()
@@ -41,10 +54,11 @@ namespace EAuction.BLL.Services
                 LastName = model.LastName,
                 DoB = model.DoB,
                 Email = model.Email,
-                EmployeePositionId= positionId,
+                EmployeePositionId= position.Id,
                 OrganizationId= employee.OrganizationId
             };
-            _applicationDbContext.Employees.Add(newEmployee);            
+            _applicationDbContext.Employees.Add(newEmployee);
+            _applicationDbContext.SaveChanges();
 
             ApplicationUser user = new ApplicationUser()
             {
@@ -56,6 +70,7 @@ namespace EAuction.BLL.Services
                 AssosiatedEmployeeId = newEmployee.Id
             };
             _identityDbContext.ApplicationUsers.Add(user);
+            _identityDbContext.SaveChanges();
 
             ApplicationUserPasswordHistory userPasswordHistory = new ApplicationUserPasswordHistory()
             {
@@ -64,9 +79,7 @@ namespace EAuction.BLL.Services
                 Password = model.Password,
                 ApplicationUserId = user.Id
             };
-            _identityDbContext.ApplicationUserPasswordHistories.Add(userPasswordHistory);
-
-            _applicationDbContext.SaveChanges();
+            _identityDbContext.ApplicationUserPasswordHistories.Add(userPasswordHistory);            
             _identityDbContext.SaveChanges();
         }
 
@@ -77,22 +90,38 @@ namespace EAuction.BLL.Services
             if (employee == null)
                 throw new Exception($"Работника с id {model.EmployeeId} в базе нет");
 
-            var positionId = _applicationDbContext.EmployeePositions.SingleOrDefault(p => p.Name == model.PositionName).Id;
+            var position = _applicationDbContext.EmployeePositions.SingleOrDefault(p => p.Name == model.PositionName);
+            if (position==null)
+            {
+                EmployeePosition pos = new EmployeePosition()
+                {
+                    Id = Guid.NewGuid(),
+                    Name = model.PositionName
+                };
+                _applicationDbContext.EmployeePositions.Add(pos);
+                _applicationDbContext.SaveChanges();
+                position = pos;
+            }
+
+            var oldEmail = employee.Email;
 
             employee.FirstName = model.FirstName;
             employee.LastName = model.LastName;
             employee.DoB = model.DoB;
-            employee.EmployeePositionId = positionId;
+            employee.Email = model.Email;
+            employee.EmployeePositionId = position.Id;
+            _applicationDbContext.SaveChanges();
 
             var user = _identityDbContext.ApplicationUsers.Include("ApplicationUserPasswordHistories")
                 .SingleOrDefault(p => p.AssosiatedEmployeeId.ToString() == model.EmployeeId && p.IsActive == true);
             var userPasswordHistory = user.ApplicationUserPasswordHistories
-                .SingleOrDefault(p => p.ApplicationUserId == user.Id && p.InvalidatedDate == null);
+                .SingleOrDefault(p => p.InvalidatedDate == null);
 
-            if (employee.Email!=model.Email)
+            if (oldEmail!=model.Email)
             {
                 user.IsActive = false;
                 userPasswordHistory.InvalidatedDate = DateTime.Now;
+                _identityDbContext.SaveChanges();
 
                 ApplicationUser newUser = new ApplicationUser()
                 {
@@ -104,6 +133,7 @@ namespace EAuction.BLL.Services
                     AssosiatedEmployeeId = employee.Id
                 };
                 _identityDbContext.ApplicationUsers.Add(newUser);
+                _identityDbContext.SaveChanges();                
 
                 ApplicationUserPasswordHistory newUserPasswordHistory = new ApplicationUserPasswordHistory()
                 {
@@ -113,12 +143,15 @@ namespace EAuction.BLL.Services
                     ApplicationUserId = newUser.Id
                 };
                 _identityDbContext.ApplicationUserPasswordHistories.Add(newUserPasswordHistory);
+                _identityDbContext.SaveChanges();
             }
             else
             {
                 if (userPasswordHistory.Password!=model.Password)
                 {
                     userPasswordHistory.InvalidatedDate = DateTime.Now;
+                    _identityDbContext.SaveChanges();
+
                     ApplicationUserPasswordHistory userNewPasswordHistory = new ApplicationUserPasswordHistory()
                     {
                         Id = Guid.NewGuid(),
@@ -127,11 +160,10 @@ namespace EAuction.BLL.Services
                         ApplicationUserId = user.Id
                     };
                     _identityDbContext.ApplicationUserPasswordHistories.Add(userNewPasswordHistory);
+                    _identityDbContext.SaveChanges();
                 }
             }
-
-            _applicationDbContext.SaveChanges();
-            _identityDbContext.SaveChanges();
+            
         }
 
 

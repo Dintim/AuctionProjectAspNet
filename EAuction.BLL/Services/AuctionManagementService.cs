@@ -123,7 +123,14 @@ namespace EAuction.BLL.Services
 
             var activeBidStatus = _applicationDbContext.BidStatuses.SingleOrDefault(p => p.StatusName == "Active").Id;
             if (activeBidStatus == null)
-                throw new Exception("Ошибка таблицы статусов ставок");
+            {
+                BidStatus status = new BidStatus()
+                {
+                    Id = Guid.NewGuid(),
+                    StatusName = "Active"
+                };
+                activeBidStatus = status.Id;
+            }
 
             //делаем ставку и списываем деньги за участие
             Bid bid = new Bid()
@@ -161,7 +168,17 @@ namespace EAuction.BLL.Services
 
             var revokeBidStatus = _applicationDbContext.BidStatuses.SingleOrDefault(p => p.StatusName == "Revoke").Id;
             if (revokeBidStatus == null)
-                throw new Exception("Ошибка таблицы статусов ставок");
+            {
+                BidStatus status = new BidStatus()
+                {
+                    Id = Guid.NewGuid(),
+                    StatusName = "Revoke"
+                };
+                revokeBidStatus = status.Id;
+            }
+
+            if ((bidExists.Auction.FinishDate - DateTime.Now).Days < 1)
+                throw new Exception("Ставку нельзя удалить! До завершение аукциона осталось меньше 24 часов.");
 
             bidExists.BidStatusId = revokeBidStatus;
             _applicationDbContext.SaveChanges();
@@ -274,7 +291,14 @@ namespace EAuction.BLL.Services
 
             var activeBidStatus = _applicationDbContext.BidStatuses.SingleOrDefault(p => p.StatusName == "Active").Id;
             if (activeBidStatus == null)
-                throw new Exception("Ошибка таблицы статусов ставок");
+            {
+                BidStatus status = new BidStatus()
+                {
+                    Id = Guid.NewGuid(),
+                    StatusName = "Active"
+                };
+                activeBidStatus = status.Id;
+            }
 
             var bidForAuction = auction.Bids.Where(p=>p.BidStatusId== activeBidStatus).ToList();
             if (bidForAuction.Count == 0)
@@ -309,7 +333,14 @@ namespace EAuction.BLL.Services
 
             var activeBidStatus = _applicationDbContext.BidStatuses.SingleOrDefault(p => p.StatusName == "Active").Id;
             if (activeBidStatus == null)
-                throw new Exception("Ошибка таблицы статусов ставок");
+            {
+                BidStatus status = new BidStatus()
+                {
+                    Id = Guid.NewGuid(),
+                    StatusName = "Active"
+                };
+                activeBidStatus = status.Id;
+            }
 
             var allBids = auction.Bids.Where(p => p.BidStatusId == activeBidStatus).ToList();
             if (allBids.Count == 0)
@@ -356,7 +387,14 @@ namespace EAuction.BLL.Services
 
             var activeBidStatus = _applicationDbContext.BidStatuses.SingleOrDefault(p => p.StatusName == "Active").Id;
             if (activeBidStatus == null)
-                throw new Exception("Ошибка таблицы статусов ставок");
+            {
+                BidStatus status = new BidStatus()
+                {
+                    Id = Guid.NewGuid(),
+                    StatusName = "Active"
+                };
+                activeBidStatus = status.Id;
+            }
 
             var allBids = auction.Bids.Where(p=>p.BidStatusId== activeBidStatus).ToList();
             if (allBids.Count == 0)
@@ -406,7 +444,14 @@ namespace EAuction.BLL.Services
 
             var activeBidStatus = _applicationDbContext.BidStatuses.SingleOrDefault(p => p.StatusName == "Active").Id;
             if (activeBidStatus == null)
-                throw new Exception("Ошибка таблицы статусов ставок");
+            {
+                BidStatus status = new BidStatus()
+                {
+                    Id = Guid.NewGuid(),
+                    StatusName = "Active"
+                };
+                activeBidStatus = status.Id;
+            }
 
             var allBids = auction.Bids.Where(p=>p.BidStatusId==activeBidStatus).ToList();
             if (allBids.Count == 0)

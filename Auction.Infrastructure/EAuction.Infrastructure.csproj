@@ -50,23 +50,6 @@
   <ItemGroup>
     <Compile Include="ApplicationDbContext.cs" />
     <Compile Include="IdentityDbContext.cs" />
-    <Compile Include="Migrations\EAuctionDbConfiguration\201904111152529_InitialCreate.cs" />
-    <Compile Include="Migrations\EAuctionDbConfiguration\201904111152529_InitialCreate.Designer.cs">
-      <DependentUpon>201904111152529_InitialCreate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\EAuctionDbConfiguration\201904111201583_AddBidStatusTab.cs" />
-    <Compile Include="Migrations\EAuctionDbConfiguration\201904111201583_AddBidStatusTab.Designer.cs">
-      <DependentUpon>201904111201583_AddBidStatusTab.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\EAuctionDbConfiguration\201904111320449_AddAuctionWin.cs" />
-    <Compile Include="Migrations\EAuctionDbConfiguration\201904111320449_AddAuctionWin.Designer.cs">
-      <DependentUpon>201904111320449_AddAuctionWin.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\EAuctionDbConfiguration\201904111512479_AddMinRatingColumn.cs" />
-    <Compile Include="Migrations\EAuctionDbConfiguration\201904111512479_AddMinRatingColumn.Designer.cs">
-      <DependentUpon>201904111512479_AddMinRatingColumn.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\EAuctionDbConfiguration\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -78,20 +61,6 @@
       <Project>{F5D58F63-ADF1-400B-8E56-291116AF25D2}</Project>
       <Name>EAuction.Core</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Migrations\EAuctionDbConfiguration\201904111152529_InitialCreate.resx">
-      <DependentUpon>201904111152529_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\EAuctionDbConfiguration\201904111201583_AddBidStatusTab.resx">
-      <DependentUpon>201904111201583_AddBidStatusTab.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\EAuctionDbConfiguration\201904111320449_AddAuctionWin.resx">
-      <DependentUpon>201904111320449_AddAuctionWin.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\EAuctionDbConfiguration\201904111512479_AddMinRatingColumn.resx">
-      <DependentUpon>201904111512479_AddMinRatingColumn.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
