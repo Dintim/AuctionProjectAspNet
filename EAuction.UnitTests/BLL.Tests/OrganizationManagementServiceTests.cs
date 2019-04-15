@@ -53,5 +53,11 @@ namespace EAuction.UnitTests.BLL.Tests
             Assert.IsNotNull(userPasswordHistory);
             Assert.IsNotNull(userSignInHistory);
         }
+
+        [TestMethod]
+        public void OrganizationManagementService_EditOrganizationInfo()
+        {
+
+        }
     }
 }

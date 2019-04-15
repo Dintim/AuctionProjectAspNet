@@ -130,12 +130,27 @@ namespace EAuction.BLL.Sevices
             if (organization == null)
                 throw new Exception($"Организации с id {model.OrganizationId} в базе нет");
 
+            var organizationType = _applicationDbContext.OrganizationTypes
+                .SingleOrDefault(p => p.Name == model.OrganizationType);
+            if (organizationType==null)
+            {
+                OrganizationType orgType = new OrganizationType()
+                {
+                    Id = Guid.NewGuid(),
+                    Name = model.OrganizationType
+                };
+                _applicationDbContext.OrganizationTypes.Add(orgType);
+                _applicationDbContext.SaveChanges();
+                organizationType = orgType;
+            }
+
             organization.FullName = model.FullName;
             organization.IdentificationNumber = model.IdentificationNumber;
-            organization.OrganizationTypeId = _applicationDbContext.OrganizationTypes.SingleOrDefault(p => p.Name == model.OrganizationType).Id;
+            organization.OrganizationTypeId = organizationType.Id;
             organization.Address = model.Address;
             organization.Contacts = model.Contacts;
             organization.Site = model.Site;
+            _applicationDbContext.SaveChanges();
             
             if (model.UploadedFiles.Count != 0)
             {
@@ -155,10 +170,22 @@ namespace EAuction.BLL.Sevices
                     file.Content = fileData;
                     file.CreatedAt = DateTime.Now;
                     _applicationDbContext.OrganizationFiles.Add(file);
+                    _applicationDbContext.SaveChanges();
                 }                
             }
 
-            _applicationDbContext.SaveChanges();
+            if (model.OrganizationFiles.Count!=0)
+            {
+                foreach (OrganizationFile item in model.OrganizationFiles)
+                {
+                    item.Id = Guid.NewGuid();
+                    item.OrganizationId = new Guid(model.OrganizationId);
+                    _applicationDbContext.OrganizationFiles.Add(item);
+                    _applicationDbContext.SaveChanges();
+                }
+            }
+
+            
         }
 
 
