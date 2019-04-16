@@ -20,18 +20,23 @@ namespace EAuction.BLL.Services
 
             int maximumAllowedActiveAuctions = 3;
 
-            var auctionsCheck = _applicationDbContext
-                .Organizations
-                .Find(organizationId)
-                .Auctions
-                .Where(p => p.Status == AuctionStatus.Active)
+            var auctionsCheck = _applicationDbContext.Auctions
+                .Where(p =>p.OrganizationId==organizationId && p.Status == AuctionStatus.Active)
                 .Count() < maximumAllowedActiveAuctions;
 
             var categoryCheck = _applicationDbContext.AuctionTypes
-                .SingleOrDefault(p => p.Name == model.AuctionType).Id;
-
+                .SingleOrDefault(p => p.Name == model.AuctionType);
             if (categoryCheck == null)
-                throw new Exception("Ошибка валидации модели!");
+            {
+                AuctionType auctionType = new AuctionType()
+                {
+                    Id = Guid.NewGuid(),
+                    Name = model.AuctionType
+                };
+                _applicationDbContext.AuctionTypes.Add(auctionType);
+                _applicationDbContext.SaveChanges();
+                categoryCheck = auctionType;
+            }
 
             if (!auctionsCheck)
                 throw new Exception("Превышено максимальное количество активных аукционов!");
@@ -43,13 +48,14 @@ namespace EAuction.BLL.Services
                 Description = model.Description,
                 ShippingAddress = model.ShippingAddress,
                 ShippingConditions = model.ShippingConditions,
+                MinRatingForParticipant=model.RatingForParticipant,
                 StartPrice = model.StartPrice,
                 PriceStep = model.PriceStep,
                 MinPrice = model.MinPrice,
                 StartDate = model.StartDate,
                 FinishDate = model.FinishDate,
                 Status = AuctionStatus.Active,
-                AuctionTypeId = categoryCheck,
+                AuctionTypeId = categoryCheck.Id,
                 OrganizationId = organizationId
             };
             _applicationDbContext.Auctions.Add(auction);
@@ -95,9 +101,15 @@ namespace EAuction.BLL.Services
             if (bidExists)
                 throw new Exception("Такая ставка уже существует");
 
-            var organization = _applicationDbContext.Organizations.Include("Transactions").SingleOrDefault(p => p.Id.ToString() == model.OrganizationId);
+            var organization = _applicationDbContext.Organizations.Include("Transactions")
+                .SingleOrDefault(p => p.Id.ToString() == model.OrganizationId);
             if (organization == null)
                 throw new Exception("Такой организации в базе нет");
+
+            var auction = _applicationDbContext.Auctions
+                .SingleOrDefault(p => p.Id.ToString() == model.AuctionId);
+            if (auction.OrganizationId.ToString()==model.OrganizationId)
+                throw new Exception("Создатель аукциона не может подавать ставки для участия в этом аукционе");
 
             //проверка баланса на наличие средств для оплаты участия в аукционе
             var organizationTransactions = organization.Transactions.ToList();
@@ -121,7 +133,7 @@ namespace EAuction.BLL.Services
             if (!inStepRange)
                 throw new Exception("Invalid bid according price step");
 
-            var activeBidStatus = _applicationDbContext.BidStatuses.SingleOrDefault(p => p.StatusName == "Active").Id;
+            var activeBidStatus = _applicationDbContext.BidStatuses.SingleOrDefault(p => p.StatusName == "Active");
             if (activeBidStatus == null)
             {
                 BidStatus status = new BidStatus()
@@ -129,7 +141,9 @@ namespace EAuction.BLL.Services
                     Id = Guid.NewGuid(),
                     StatusName = "Active"
                 };
-                activeBidStatus = status.Id;
+                _applicationDbContext.BidStatuses.Add(status);
+                _applicationDbContext.SaveChanges();
+                activeBidStatus = status;
             }
 
             //делаем ставку и списываем деньги за участие
@@ -141,9 +155,10 @@ namespace EAuction.BLL.Services
                 AuctionId = new Guid(model.AuctionId),
                 OrganizationId = new Guid(model.OrganizationId),
                 CreatedDate = DateTime.Now,
-                BidStatusId=activeBidStatus                
+                BidStatusId=activeBidStatus.Id                
             };
             _applicationDbContext.Bids.Add(bid);
+            _applicationDbContext.SaveChanges();
 
             Transaction transaction = new Transaction()
             {
@@ -151,12 +166,12 @@ namespace EAuction.BLL.Services
                 Sum = bidCost,
                 TransactionType = TransactionType.Withdraw,
                 TransactionDate = DateTime.Now,
-                OrganizationId = organization.Id,
+                OrganizationId = new Guid(model.OrganizationId),
                 Description = $"Withdraw participation cost for auction {model.AuctionId}"
             };
-            _applicationDbContext.Transactions.Add(transaction);
-            
+            _applicationDbContext.Transactions.Add(transaction);            
             _applicationDbContext.SaveChanges();
+
         }
 
 

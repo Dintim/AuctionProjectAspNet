@@ -54,8 +54,10 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BLL.Tests\AuctionManagementServiceTests.cs" />
     <Compile Include="BLL.Tests\EmployeeManagementServiceTests.cs" />
     <Compile Include="BLL.Tests\OrganizationManagementServiceTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -13,6 +13,7 @@ namespace EAuction.BLL.ViewModels
         public string Description { get; set; }
         public string ShippingAddress { get; set; }
         public string ShippingConditions { get; set; }
+        public double RatingForParticipant { get; set; }
         public decimal StartPrice { get; set; }
         public decimal PriceStep { get; set; }
         public decimal MinPrice { get; set; }
