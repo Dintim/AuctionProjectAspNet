@@ -181,7 +181,7 @@ namespace EAuction.BLL.Services
             if (bidExists==null)
                 throw new Exception("Такой ставки не существует!");
 
-            var revokeBidStatus = _applicationDbContext.BidStatuses.SingleOrDefault(p => p.StatusName == "Revoke").Id;
+            var revokeBidStatus = _applicationDbContext.BidStatuses.SingleOrDefault(p => p.StatusName == "Revoke");
             if (revokeBidStatus == null)
             {
                 BidStatus status = new BidStatus()
@@ -189,18 +189,21 @@ namespace EAuction.BLL.Services
                     Id = Guid.NewGuid(),
                     StatusName = "Revoke"
                 };
-                revokeBidStatus = status.Id;
+                _applicationDbContext.BidStatuses.Add(status);
+                _applicationDbContext.SaveChanges();
+                revokeBidStatus = status;
             }
 
-            if ((bidExists.Auction.FinishDate - DateTime.Now).Days < 1)
+            var auctionFinishDate = _applicationDbContext.Auctions.SingleOrDefault(p => p.Id == bidExists.AuctionId);
+            if ((auctionFinishDate.FinishDate - DateTime.Now).Days < 1)
                 throw new Exception("Ставку нельзя удалить! До завершение аукциона осталось меньше 24 часов.");
 
-            bidExists.BidStatusId = revokeBidStatus;
+            bidExists.BidStatusId = revokeBidStatus.Id;            
             _applicationDbContext.SaveChanges();
         }
 
 
-        public void ElectWinnerInAuction(BidInfoViewModel model) //рейтинг, сумма на счете?
+        public void ElectWinnerInAuction(BidInfoViewModel model) 
         {
             var auction = _applicationDbContext.Auctions.SingleOrDefault(p => p.Id.ToString() == model.AuctionId);
             if (auction == null)
@@ -221,7 +224,8 @@ namespace EAuction.BLL.Services
             if (organizationTransactions.Count == 0)
                 throw new Exception($"У организации {organization.FullName} нулевой баланс");
 
-            var organizationBalance = organizationTransactions.Where(p => p.TransactionType == TransactionType.Deposit).Sum(p => p.Sum) -
+            var organizationBalance = organizationTransactions
+                .Where(p => p.TransactionType == TransactionType.Deposit).Sum(p => p.Sum) -
                 organizationTransactions.Where(p => p.TransactionType == TransactionType.Withdraw).Sum(p => p.Sum);           
             if (organizationBalance < model.Price)
                 throw new Exception($"У организации {organization.FullName} не хватает средств на балансе для оплаты своей ставки на аукционе");
@@ -231,7 +235,7 @@ namespace EAuction.BLL.Services
             if (organizationAvgScore < auction.MinRatingForParticipant)
                 throw new Exception($"У организации {organization.FullName} нет нужного рейтинга для участия в аукционе");
 
-                AuctionWin win = new AuctionWin()
+            AuctionWin win = new AuctionWin()
             {
                 Id = Guid.NewGuid(),
                 SetupDate = DateTime.Now,
@@ -239,6 +243,7 @@ namespace EAuction.BLL.Services
                 OrganizationId = new Guid(model.OrganizationId)
             };
             _applicationDbContext.AuctionWins.Add(win);
+            //_applicationDbContext.SaveChanges();
 
             Transaction transaction = new Transaction()
             {
@@ -250,8 +255,8 @@ namespace EAuction.BLL.Services
                 Description = $"Withdraw bid price for auction {model.AuctionId}"
             };
             _applicationDbContext.Transactions.Add(transaction);
-
             _applicationDbContext.SaveChanges();
+
         }
 
 
