@@ -24,26 +24,26 @@ namespace EAuction.UnitTests.BLL.Tests
 
             RegisterOrganizationViewModel model = new RegisterOrganizationViewModel()
             {
-                FullName = "ТестКомпани",
+                FullName = "TestCompany_01",
                 IdentificationNumber = "22222222",
                 OrganizationType = "ТОО",
-                CeoFirstName = "Джон",
-                CeoLastName = "Джонов",
-                CeoEmail = "john@gmail.com",
+                CeoFirstName = "TestCeo",
+                CeoLastName = "TestCeo",
+                CeoEmail = "test@gmail.com",
                 CeoDoB = new DateTime(1985, 3, 9),
-                Password = "asdf111",
-                PasswordConfirm = "asdf111"
+                Password = "test111",
+                PasswordConfirm = "test111"
             };
 
             OrganizationManagementService sut = new OrganizationManagementService();
             sut.OpenOrganization(model);
 
             Organization org = applicationDb.Organizations
-                .SingleOrDefault(p => p.FullName == "ТестКомпани" && p.IdentificationNumber == "22222222");
-            Employee emp = applicationDb.Employees.SingleOrDefault(p => p.FirstName == "Джон" && p.LastName == "Джонов");
-            ApplicationUser user = identityDb.ApplicationUsers.SingleOrDefault(p => p.Email == "john@gmail.com");
+                .SingleOrDefault(p => p.FullName == "TestCompany_01" && p.IdentificationNumber == "22222222");
+            Employee emp = applicationDb.Employees.SingleOrDefault(p => p.FirstName == "TestCeo" && p.LastName == "TestCeo");
+            ApplicationUser user = identityDb.ApplicationUsers.SingleOrDefault(p => p.Email == "test@gmail.com");
             ApplicationUserPasswordHistory userPasswordHistory = identityDb.ApplicationUserPasswordHistories
-                .SingleOrDefault(p => p.ApplicationUserId == user.Id && p.Password == "asdf111");
+                .SingleOrDefault(p => p.ApplicationUserId == user.Id && p.Password == "test111");
             ApplicationUserSignInHistory userSignInHistory = identityDb.ApplicationUserSignInHistories
                 .SingleOrDefault(p => p.ApplicationUserId == user.Id);
 
@@ -55,9 +55,80 @@ namespace EAuction.UnitTests.BLL.Tests
         }
 
         [TestMethod]
-        public void OrganizationManagementService_EditOrganizationInfo()
+        public void OrganizationManagementService_PutRatingScoreToOrganization()
         {
+            ApplicationDbContext applicationDb = new ApplicationDbContext();            
+            applicationDb.Database.CreateIfNotExists();
 
+            OrganizationType organizationType = new OrganizationType()
+            {
+                Id = Guid.NewGuid(),
+                Name = "TestType_02"
+            };
+            applicationDb.OrganizationTypes.Add(organizationType);
+            applicationDb.SaveChanges();
+
+            Organization organization = new Organization()
+            {
+                Id = Guid.NewGuid(),
+                FullName = "TestCompany_02",
+                RegistrationDate = DateTime.Now,
+                OrganizationTypeId = organizationType.Id
+            };
+            applicationDb.Organizations.Add(organization);
+            applicationDb.SaveChanges();
+
+            double score = 10.5;
+
+            OrganizationManagementService sut = new OrganizationManagementService();
+            sut.PutRatingScoreToOrganization(organization.Id, score);
+
+            OrganizationRating rating = applicationDb.OrganizationRatings
+                .SingleOrDefault(p => p.OrganizationId == organization.Id);
+            Assert.IsNotNull(rating);
+            Assert.IsTrue(rating.Score == score);
+        }
+
+        [TestMethod]
+        public void OrganizationManagementService_MakeTransaction()
+        {
+            ApplicationDbContext applicationDb = new ApplicationDbContext();
+            applicationDb.Database.CreateIfNotExists();
+
+            OrganizationType organizationType = new OrganizationType()
+            {
+                Id = Guid.NewGuid(),
+                Name = "TestType_03"
+            };
+            applicationDb.OrganizationTypes.Add(organizationType);
+            applicationDb.SaveChanges();
+
+            Organization organization = new Organization()
+            {
+                Id = Guid.NewGuid(),
+                FullName = "TestCompany_03",
+                RegistrationDate = DateTime.Now,
+                OrganizationTypeId = organizationType.Id
+            };
+            applicationDb.Organizations.Add(organization);
+            applicationDb.SaveChanges();
+
+            TransactionInfoViewModel model = new TransactionInfoViewModel()
+            {
+                TransactionTypeName = "Deposit",
+                Sum = 145000.50M,
+                Description = "test transaction",
+                OrganizationId = organization.Id.ToString(),
+                OrganizationName = organization.FullName
+            };
+
+            OrganizationManagementService sut = new OrganizationManagementService();
+            sut.MakeTransaction(model);
+
+            Transaction transaction = applicationDb.Transactions.SingleOrDefault(p => p.OrganizationId == organization.Id);
+
+            Assert.IsNotNull(transaction);
+            Assert.IsTrue(transaction.Sum == model.Sum && transaction.TransactionType.Equals(TransactionType.Deposit));
         }
     }
 }

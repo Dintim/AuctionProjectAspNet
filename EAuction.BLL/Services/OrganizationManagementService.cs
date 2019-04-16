@@ -246,7 +246,6 @@ namespace EAuction.BLL.Sevices
                 OrganizationId = organization.Id
             };
             _applicationDbContext.OrganizationRatings.Add(rating);
-
             _applicationDbContext.SaveChanges();
         }
         
