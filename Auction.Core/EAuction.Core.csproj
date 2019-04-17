@@ -55,7 +55,6 @@
     <Compile Include="DataModels\Auction.cs" />
     <Compile Include="DataModels\AuctionFile.cs" />
     <Compile Include="DataModels\AuctionType.cs" />
-    <Compile Include="DataModels\AuctionWin.cs" />
     <Compile Include="DataModels\Bid.cs" />
     <Compile Include="DataModels\BidStatus.cs" />
     <Compile Include="DataModels\Employee.cs" />

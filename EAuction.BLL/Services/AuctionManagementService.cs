@@ -149,13 +149,14 @@ namespace EAuction.BLL.Services
             //делаем ставку и списываем деньги за участие
             Bid bid = new Bid()
             {
-                Id=Guid.NewGuid(),
+                Id = Guid.NewGuid(),
                 Price = model.Price,
+                IsWin = false,
                 Description = model.Description,
                 AuctionId = new Guid(model.AuctionId),
                 OrganizationId = new Guid(model.OrganizationId),
                 CreatedDate = DateTime.Now,
-                BidStatusId=activeBidStatus.Id                
+                BidStatusId = activeBidStatus.Id
             };
             _applicationDbContext.Bids.Add(bid);
             _applicationDbContext.SaveChanges();
@@ -163,7 +164,7 @@ namespace EAuction.BLL.Services
             Transaction transaction = new Transaction()
             {
                 Id = Guid.NewGuid(),
-                Sum = bidCost,
+                Sum = bidCost,                
                 TransactionType = TransactionType.Withdraw,
                 TransactionDate = DateTime.Now,
                 OrganizationId = new Guid(model.OrganizationId),
@@ -235,15 +236,12 @@ namespace EAuction.BLL.Services
             if (organizationAvgScore < auction.MinRatingForParticipant)
                 throw new Exception($"У организации {organization.FullName} нет нужного рейтинга для участия в аукционе");
 
-            AuctionWin win = new AuctionWin()
-            {
-                Id = Guid.NewGuid(),
-                SetupDate = DateTime.Now,
-                AuctionId = new Guid(model.AuctionId),
-                OrganizationId = new Guid(model.OrganizationId)
-            };
-            _applicationDbContext.AuctionWins.Add(win);
-            //_applicationDbContext.SaveChanges();
+            var bid = _applicationDbContext.Bids.SingleOrDefault(p => p.Id.ToString() == model.BidId);
+            if (bid == null)
+                throw new Exception("Такой ставки не существует");
+
+            bid.IsWin = true;
+            _applicationDbContext.SaveChanges();
 
             Transaction transaction = new Transaction()
             {

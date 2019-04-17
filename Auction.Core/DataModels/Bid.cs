@@ -12,6 +12,7 @@ namespace EAuction.Core.DataModels
         public decimal Price { get; set; }        
         public DateTime CreatedDate { get; set; }
         public string Description { get; set; }
+        public bool ? IsWin { get; set; }
 
         public Guid BidStatusId { get; set; }
         public BidStatus BidStatus { get; set; }

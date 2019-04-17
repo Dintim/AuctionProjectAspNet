@@ -18,9 +18,9 @@ namespace EAuction.BLL.Sevices
         private readonly ApplicationDbContext _applicationDbContext;
         private readonly IdentityDbContext _identityDbContext;
 
-        public void OpenOrganization(RegisterOrganizationViewModel model)
+        public void OpenOrganization(RegisterOrganizationViewModel model, string ip)
         {
-            var geoLocationInfo = GeoLocationInfo.GetGeolocationInfo();
+            var geoLocationInfo = GeoLocationInfo.GetGeolocationInfo(ip);
 
             if (model == null)
                 throw new Exception($"{typeof(RegisterOrganizationViewModel).Name} is null");
@@ -148,6 +148,7 @@ namespace EAuction.BLL.Sevices
             organization.IdentificationNumber = model.IdentificationNumber;
             organization.OrganizationTypeId = organizationType.Id;
             organization.Address = model.Address;
+            organization.Email = model.Email;
             organization.Contacts = model.Contacts;
             organization.Site = model.Site;
             _applicationDbContext.SaveChanges();
@@ -173,18 +174,6 @@ namespace EAuction.BLL.Sevices
                     _applicationDbContext.SaveChanges();
                 }                
             }
-
-            if (model.OrganizationFiles.Count!=0)
-            {
-                foreach (OrganizationFile item in model.OrganizationFiles)
-                {
-                    item.Id = Guid.NewGuid();
-                    item.OrganizationId = new Guid(model.OrganizationId);
-                    _applicationDbContext.OrganizationFiles.Add(item);
-                    _applicationDbContext.SaveChanges();
-                }
-            }
-
             
         }
 

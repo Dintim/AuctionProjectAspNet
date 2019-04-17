@@ -27,10 +27,7 @@ namespace EAuction.Core.DataModels
         public AuctionType AuctionType { get; set; }
 
         public Guid OrganizationId { get; set; }
-        public Organization Organization { get; set; }
-
-        public Guid ? AuctionWinId { get; set; }
-        public AuctionWin AuctionWin { get; set; }
+        public Organization Organization { get; set; }        
 
         public ICollection<AuctionFile> AuctionFiles { get; set; }
         public ICollection<Bid> Bids { get; set; }

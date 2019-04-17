@@ -12,8 +12,7 @@ namespace EAuction.Infrastructure
     {
         public DbSet<Auction> Auctions { get; set; }
         public DbSet<AuctionFile> AuctionFiles { get; set; }
-        public DbSet<AuctionType> AuctionTypes { get; set; }
-        public DbSet<AuctionWin> AuctionWins { get; set; }
+        public DbSet<AuctionType> AuctionTypes { get; set; }        
         public DbSet<Bid> Bids { get; set; }
         public DbSet<BidStatus> BidStatuses { get; set; }
         public DbSet<Employee> Employees { get; set; }
@@ -37,9 +36,7 @@ namespace EAuction.Infrastructure
             modelBuilder.Entity<Organization>().HasMany(p => p.Bids).WithRequired(p => p.Organization).HasForeignKey(p => p.OrganizationId).WillCascadeOnDelete(false);
             modelBuilder.Entity<Organization>().HasMany(p => p.Transactions).WithRequired(p => p.Organization).HasForeignKey(p => p.OrganizationId);
             modelBuilder.Entity<Organization>().HasMany(p => p.OrganizationRatings).WithRequired(p => p.Organization).HasForeignKey(p => p.OrganizationId);
-            modelBuilder.Entity<BidStatus>().HasMany(p => p.Bids).WithRequired(p => p.BidStatus).HasForeignKey(p => p.BidStatusId);
-            modelBuilder.Entity<Auction>().HasOptional(p => p.AuctionWin).WithRequired(p => p.Auction);
-            modelBuilder.Entity<Organization>().HasMany(p => p.AuctionWins).WithRequired(p => p.Organization).HasForeignKey(p => p.OrganizationId);
+            modelBuilder.Entity<BidStatus>().HasMany(p => p.Bids).WithRequired(p => p.BidStatus).HasForeignKey(p => p.BidStatusId);            
             base.OnModelCreating(modelBuilder);
         }
 

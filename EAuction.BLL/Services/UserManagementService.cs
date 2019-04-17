@@ -16,9 +16,9 @@ namespace EAuction.BLL.Services
     {
         private readonly IdentityDbContext _identityDbContext;
 
-        private bool IsValidUser(UserLogOnViewModel model)
+        private bool IsValidUser(UserLogOnViewModel model, string ip)
         {
-            model.GeoLocation = GeoLocationInfo.GetGeolocationInfo();
+            model.GeoLocation = GeoLocationInfo.GetGeolocationInfo(ip);
 
             //проверяем, есть ли емейл в базе
             var user = _identityDbContext.ApplicationUsers.Include("ApplicationUserPasswordHistories")

@@ -374,13 +374,12 @@ namespace EAuction.UnitTests.BLL.Tests
             AuctionManagementService sut = new AuctionManagementService();
             sut.ElectWinnerInAuction(model);
 
-            AuctionWin win = applicationDb.AuctionWins
-                .SingleOrDefault(p => p.AuctionId.ToString() == model.AuctionId && p.OrganizationId.ToString() == model.OrganizationId);
+            Bid newBid = applicationDb.Bids.SingleOrDefault(p => p.Id.ToString() == model.BidId);
             Transaction transaction = applicationDb.Transactions
                 .SingleOrDefault(p => p.Sum == model.Price && p.TransactionType == TransactionType.Withdraw
                 && p.OrganizationId.ToString()==model.OrganizationId);
 
-            Assert.IsNotNull(win);
+            Assert.IsNotNull(newBid);
             Assert.IsNotNull(transaction);
         }
     }

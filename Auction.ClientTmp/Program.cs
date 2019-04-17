@@ -23,112 +23,42 @@ namespace EAuction.ClientTmp
             OrganizationType organizationType = new OrganizationType()
             {
                 Id = Guid.NewGuid(),
-                Name = "TstTypeA_86"
+                Name = "TestType_05"
             };
             applicationDb.OrganizationTypes.Add(organizationType);
             applicationDb.SaveChanges();
 
-            Organization auctionMaster = new Organization()
+            Organization organization = new Organization()
             {
                 Id = Guid.NewGuid(),
-                FullName = "TestCompanyA_86",
+                FullName = "TestCompany_05",
                 RegistrationDate = DateTime.Now,
                 OrganizationTypeId = organizationType.Id
             };
-            applicationDb.Organizations.Add(auctionMaster);
+            applicationDb.Organizations.Add(organization);
             applicationDb.SaveChanges();
 
-            Organization auctionParticipant = new Organization()
+            List<HttpPostedFileBase> files = new List<HttpPostedFileBase>();
+            OrganizationInfoViewModel model = new OrganizationInfoViewModel()
             {
-                Id = Guid.NewGuid(),
-                FullName = "TestCompanyA_862",
-                RegistrationDate = DateTime.Now,
-                OrganizationTypeId = organizationType.Id
-            };
-            applicationDb.Organizations.Add(auctionParticipant);
-            applicationDb.SaveChanges();
-
-            AuctionType auctionType = new AuctionType()
-            {
-                Id = Guid.NewGuid(),
-                Name = "TestAuctionType_86"
-            };
-            applicationDb.AuctionTypes.Add(auctionType);
-            applicationDb.SaveChanges();
-
-            Auction auction = new Auction()
-            {
-                Id = Guid.NewGuid(),
-                Description = "test_any description_86",
-                MinRatingForParticipant = 9.5,
-                StartPrice = 600000M,
-                MinPrice = 100000M,
-                PriceStep = 50000M,
-                StartDate = new DateTime(2019, 4, 26),
-                FinishDate = new DateTime(2019, 5, 22),
-                Status = AuctionStatus.Active,
-                AuctionTypeId = auctionType.Id,
-                OrganizationId = auctionMaster.Id
-            };
-            applicationDb.Auctions.Add(auction);
-            applicationDb.SaveChanges();
-
-            Transaction depositTrans = new Transaction()
-            {
-                Id = Guid.NewGuid(),
-                TransactionType = TransactionType.Deposit,
-                Sum = 400000,
-                TransactionDate = DateTime.Now,
-                OrganizationId = auctionParticipant.Id
-            };
-            applicationDb.Transactions.Add(depositTrans);
-            applicationDb.SaveChanges();
-
-            OrganizationRating rating = new OrganizationRating()
-            {
-                Id = Guid.NewGuid(),
-                Score = 10,
-                OrganizationId = auctionParticipant.Id
-            };
-            applicationDb.OrganizationRatings.Add(rating);
-            applicationDb.SaveChanges();
-
-            var activeBidStatus = applicationDb.BidStatuses.SingleOrDefault(p => p.StatusName == "Active");
-            if (activeBidStatus == null)
-            {
-                BidStatus status = new BidStatus()
-                {
-                    Id = Guid.NewGuid(),
-                    StatusName = "Active"
-                };
-                applicationDb.BidStatuses.Add(status);
-                applicationDb.SaveChanges();
-                activeBidStatus = status;
-            }
-
-            Bid bid = new Bid()
-            {
-                Id = Guid.NewGuid(),
-                Price = 200000M,
-                CreatedDate = DateTime.Now,
-                BidStatusId = activeBidStatus.Id,
-                AuctionId = auction.Id,
-                OrganizationId = auctionParticipant.Id
-            };
-            applicationDb.Bids.Add(bid);
-            applicationDb.SaveChanges();
-
-            BidInfoViewModel model = new BidInfoViewModel()
-            {
-                BidId = bid.Id.ToString(),
-                AuctionId = auction.Id.ToString(),
-                OrganizationId = auctionParticipant.Id.ToString(),
-                CreatedDate = DateTime.Now,
-                Price = bid.Price
+                OrganizationId = organization.Id.ToString(),
+                FullName = "AnotherTestCompany_05",
+                IdentificationNumber = organization.IdentificationNumber,
+                Address = organization.Address,
+                Email = "testc05@gmail.com",
+                Contacts = organization.Contacts,
+                Site = organization.Site,
+                OrganizationType = "AnotherTestType_05",
+                UploadedFiles = files
             };
 
-            AuctionManagementService sut = new AuctionManagementService();
-            sut.ElectWinnerInAuction(model);
+            OrganizationManagementService sut = new OrganizationManagementService();
+            sut.EditOrganizationInfo(model);
+
+            Organization org = applicationDb.Organizations.SingleOrDefault(p => p.Id == organization.Id);
+
+            Console.WriteLine(org!=null);
+            //Console.WriteLine(org.FullName == "AnotherTestCompany_05" && org.Email == "testc05@gmail.com");
         }
     }
 }

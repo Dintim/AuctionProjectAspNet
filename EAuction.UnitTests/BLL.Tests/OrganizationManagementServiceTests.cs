@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace EAuction.UnitTests.BLL.Tests
 {
@@ -36,7 +37,7 @@ namespace EAuction.UnitTests.BLL.Tests
             };
 
             OrganizationManagementService sut = new OrganizationManagementService();
-            sut.OpenOrganization(model);
+            sut.OpenOrganization(model, "2.134.87.32");
 
             Organization org = applicationDb.Organizations
                 .SingleOrDefault(p => p.FullName == "TestCompany_01" && p.IdentificationNumber == "22222222");
@@ -129,6 +130,53 @@ namespace EAuction.UnitTests.BLL.Tests
 
             Assert.IsNotNull(transaction);
             Assert.IsTrue(transaction.Sum == model.Sum && transaction.TransactionType.Equals(TransactionType.Deposit));
+        }
+
+        [TestMethod]
+        public void OrganizationManagementService_EditOrganizationInfo()
+        {
+            ApplicationDbContext applicationDb = new ApplicationDbContext();
+            applicationDb.Database.CreateIfNotExists();
+
+            OrganizationType organizationType = new OrganizationType()
+            {
+                Id = Guid.NewGuid(),
+                Name = "TestType_04"
+            };
+            applicationDb.OrganizationTypes.Add(organizationType);
+            applicationDb.SaveChanges();
+
+            Organization organization = new Organization()
+            {
+                Id = Guid.NewGuid(),
+                FullName = "TestCompany_04",
+                RegistrationDate = DateTime.Now,
+                OrganizationTypeId = organizationType.Id
+            };
+            applicationDb.Organizations.Add(organization);
+            applicationDb.SaveChanges();
+
+            List<HttpPostedFileBase> files = new List<HttpPostedFileBase>();
+            OrganizationInfoViewModel model = new OrganizationInfoViewModel()
+            {
+                OrganizationId = organization.Id.ToString(),
+                FullName = "TestCompany_04",
+                IdentificationNumber = organization.IdentificationNumber,
+                Address = organization.Address,
+                Email = "testc04@gmail.com",
+                Contacts = organization.Contacts,
+                Site = organization.Site,
+                OrganizationType = "AnotherTestType_04",
+                UploadedFiles=files
+            };
+
+            OrganizationManagementService sut = new OrganizationManagementService();
+            sut.EditOrganizationInfo(model);
+
+            Organization org = applicationDb.Organizations.SingleOrDefault(p => p.Id == organization.Id);
+
+            Assert.IsNotNull(org);
+            //Assert.IsTrue(org.FullName == "TestCompany_04" && org.Email == "testc04@gmail.com");
         }
     }
 }
