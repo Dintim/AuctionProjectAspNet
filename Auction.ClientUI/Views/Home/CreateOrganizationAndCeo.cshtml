@@ -1,0 +1,102 @@
+﻿@model EAuction.BLL.ViewModels.RegisterOrganizationViewModel
+@{
+    ViewBag.Title = "CreateOrganizationAndCeo";
+}
+
+<h2>Регистрация организации</h2>
+@*<form action="/Home/CreateOrganizationAndCeo" method="post">
+    <div class="item">
+        <label>Наименование</label>
+        <input name="FullName" value="@Model.FullName" />
+    </div>
+    <div class="item">
+        <label>БИН</label>
+        <input name="IdentificationNumber" value="@Model.IdentificationNumber" />
+    </div>
+    <div class="item">
+        <label>Имя руководителя</label>
+        <input name="CeoFirstName" value="@Model.CeoFirstName" />
+    </div>
+    <input type="submit" value="Отправить" />
+</form>*@
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+<div>
+    @*<h4>Регистрация пользователя</h4>*@
+    <hr />
+    @Html.ValidationSummary(false)
+
+    <div>
+        Наименование
+        <div>
+            @Html.EditorFor(model => model.FullName)
+        </div>
+    </div>
+
+    <div>
+        БИН
+        <div>
+            @Html.EditorFor(model => model.IdentificationNumber)
+        </div>
+    </div>
+
+    <div>
+        Тип организации
+        <div>
+            @Html.EditorFor(model => model.OrganizationType)
+        </div>
+    </div>
+
+    <div>
+        Имя руководителя
+        <div>
+            @Html.EditorFor(model => model.CeoFirstName)
+        </div>
+    </div>
+
+    <div>
+        Фамилия руководителя
+        <div>
+            @Html.EditorFor(model => model.CeoLastName)
+        </div>
+    </div>
+
+    <div>
+        Email руководителя
+        <div>
+            @Html.EditorFor(model => model.CeoEmail)
+        </div>
+    </div>
+
+    <div>
+        Дата рождения руководителя
+        <div>
+            @Html.EditorFor(model => model.CeoDoB)
+        </div>
+    </div>
+
+    <div>
+        Пароль
+        <div>
+            @Html.EditorFor(model => model.Password)
+        </div>
+    </div>
+
+    <div>
+        Подтвердить пароль
+        <div>
+            @Html.EditorFor(model => model.PasswordConfirm)
+        </div>
+    </div>
+
+    <div>
+        <div>
+            <input type="submit" value="Зарегистрировать" />
+        </div>
+    </div>
+</div>
+}
+

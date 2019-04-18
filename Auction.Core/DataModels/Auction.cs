@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace EAuction.Core.DataModels
 {
-    public enum AuctionStatus { Active, Finished }
+    public enum AuctionStatus { Active=1, Finished=2 }
 
     public class Auction
     {

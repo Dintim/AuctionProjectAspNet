@@ -1,22 +1,38 @@
 ﻿@{
-    ViewBag.Title = "Home Page";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="jumbotron">
-    <h1>ASP.NET</h1>
-    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+<div>
+    <h3>Активные аукционы</h3>
+    <table>
+        <tr>
+            <th>Компания</th>
+            <th>Описание</th>
+            <th>Начальная цена</th>
+            <th>Начало аукциона</th>
+            <th>Рейтинг участника</th>
+            <th></th>
+            <td></td>
+        </tr>
+        @foreach (var b in ViewBag.allAuctions)
+        {
+            <tr>
+                <td>@b.OrganizationName</td>
+                <td>@b.Description</td>
+                <td><p align="right">@b.StartPrice</p></td>
+                <td><p align="right">@b.StartDate.ToShortDateString()</p></td>
+                <td><p align="right">@b.MinRatingForParticipant</p></td>
+                <td><p align="right"><a href="/Home/ShowAuction/@b.AuctionId">Посмотреть аукцион</a></p></td>
+            </tr>
+        }
+    </table>
 </div>
 
 <div class="row">
     <div class="col-md-4">
-        <h2>Getting started</h2>
-        <p>
-            ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-            enables a clean separation of concerns and gives you full control over markup
-            for enjoyable, agile development.
-        </p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
+        <h2>Вас еще нет на сайте?</h2>
+        <p>Участие в аукционах приносит много профита бла-бла</p>
+        <p><a class="btn btn-default" href="/Home/CreateOrganizationAndCeo">Создайте аккаунт компании &raquo;</a></p>
     </div>
     <div class="col-md-4">
         <h2>Get more libraries</h2>

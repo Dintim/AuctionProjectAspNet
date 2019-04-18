@@ -1,4 +1,7 @@
-﻿using EAuction.Infrastructure;
+﻿using EAuction.BLL.Services;
+using EAuction.BLL.Sevices;
+using EAuction.BLL.ViewModels;
+using EAuction.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,13 +12,16 @@ namespace Auction.ClientUI.Controllers
 {
     public class HomeController : Controller
     {
-        ApplicationDbContext db = new ApplicationDbContext();
-        IdentityDbContext identityDb = new IdentityDbContext();
+        AuctionManagementService auctionManagement = new AuctionManagementService();
+        OrganizationManagementService organizationManagement = new OrganizationManagementService();
+        EmployeeManagementService employeeManagement = new EmployeeManagementService();
+        UserManagementService userManagement = new UserManagementService();
+
         
         public ActionResult Index()
         {
-            db.Database.CreateIfNotExists();
-            identityDb.Database.CreateIfNotExists();
+            List<AuctionInfoViewModel> allAuctions = auctionManagement.GetAllActiveAuctions();
+            ViewBag.allAuctions = allAuctions;
             return View();
         }
 
@@ -31,6 +37,25 @@ namespace Auction.ClientUI.Controllers
             ViewBag.Message = "Your contact page.";
 
             return View();
+        }
+
+        
+        public ActionResult ShowAuction(string auctionId)
+        {            
+            AuctionInfoViewModel auctionInfoVm = auctionManagement.GetAuctionInfo(auctionId);
+            ViewBag.auctionInfoVm = auctionInfoVm;
+            return View();
+        }        
+
+        public ActionResult CreateOrganizationAndCeo()
+        {
+            return View(new RegisterOrganizationViewModel());
+        }
+
+        [HttpPost]
+        public ActionResult CreateOrganizationAndCeo(RegisterOrganizationViewModel organization)
+        {
+            return View(organization);
         }
     }
 }

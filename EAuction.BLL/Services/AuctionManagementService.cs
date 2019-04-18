@@ -269,23 +269,29 @@ namespace EAuction.BLL.Services
         }
 
 
-        public AuctionInfoViewModel GetAuctionInfo(Guid auctionId)
+        public AuctionInfoViewModel GetAuctionInfo(string auctionId)
         {            
-            var auction = _applicationDbContext.Auctions.Include("Organizations").SingleOrDefault(p => p.Id == auctionId);
+            var auction = _applicationDbContext.Auctions.Include("Organizations").SingleOrDefault(p => p.Id.ToString() == auctionId);
             if (auction == null)
                 throw new Exception($"Аукциона с таким id {auctionId} не существует");
 
-            var auctionFiles = _applicationDbContext.AuctionFiles.Where(p => p.AuctionId == auctionId).ToList();
+            var auctionFiles = _applicationDbContext.AuctionFiles.Where(p => p.AuctionId.ToString() == auctionId).ToList();
             //if (auctionFiles.Count == 0)
             //    throw new Exception($"У аукциона {auctionId} нет прикрепленных документов");
 
-            var organization = auction.Organization.FullName;
+            
+            var auctionType = _applicationDbContext.AuctionTypes.SingleOrDefault(p => p.Id == auction.AuctionTypeId);
+            
+            var organization = _applicationDbContext.Organizations.SingleOrDefault(p => p.Id == auction.OrganizationId);
+            
             AuctionInfoViewModel model = new AuctionInfoViewModel()
             {
                 AuctionId = auctionId.ToString(),
                 Status = auction.Status.ToString(),
-                AuctionType = auction.AuctionType.Name,
-                OrganizationName = organization,
+                AuctionType = auctionType.Name,
+                OrganizationName = organization.FullName,
+                MinRatingForParticipant=auction.MinRatingForParticipant.ToString(),
+                Description=auction.Description,
                 ShippingAddress = auction.ShippingAddress,
                 ShippingConditions = auction.ShippingConditions,
                 StartPrice = auction.StartPrice,
@@ -294,7 +300,7 @@ namespace EAuction.BLL.Services
                 StartDate = auction.StartDate,
                 FinishDate = auction.FinishDate,
                 FinishDateAtActual = auction.FinishDateAtActual,
-                AuctionFiles = auctionFiles
+                //AuctionFiles = auctionFiles
             };
 
             return model;
@@ -519,6 +525,42 @@ namespace EAuction.BLL.Services
                 bids.Add(bid);
             }
             return bids;
+        }
+
+        public List<AuctionInfoViewModel> GetAllActiveAuctions()
+        {
+            var auctions = _applicationDbContext.Auctions.ToList();
+            if (auctions.Count == 0)
+                throw new Exception("Активных аукционов на данный момент в базе нет");
+
+            List<AuctionInfoViewModel> auctionModels = new List<AuctionInfoViewModel>();
+            foreach (Auction item in auctions)
+            {
+                AuctionInfoViewModel model = new AuctionInfoViewModel();
+                model.AuctionId = item.Id.ToString();
+                model.Status = item.Status.ToString();
+
+                var auctionType = _applicationDbContext.AuctionTypes.SingleOrDefault(p => p.Id == item.AuctionTypeId);
+                model.AuctionType = auctionType.Name;
+
+                var organization = _applicationDbContext.Organizations.SingleOrDefault(p => p.Id == item.OrganizationId);
+                model.OrganizationName = organization.FullName;
+
+                model.MinRatingForParticipant = item.MinRatingForParticipant.ToString();
+                model.Description = item.Description;
+                model.ShippingAddress = item.ShippingAddress;
+                model.ShippingConditions = item.ShippingConditions;
+                model.StartPrice = item.StartPrice;
+                model.PriceStep = item.PriceStep;
+                model.MinPrice = item.MinPrice;
+                model.StartDate = item.StartDate;
+                model.FinishDate = item.FinishDate;
+                //model.AuctionFiles = item.AuctionFiles.ToList();
+                
+                auctionModels.Add(model);
+            }
+
+            return auctionModels;
         }
 
         public List<AuctionInfoViewModel> GetActiveAuctionsExceptMine(Guid organizationId)

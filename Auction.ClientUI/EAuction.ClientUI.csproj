@@ -198,6 +198,8 @@
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Contact.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\Home\ShowAuction.cshtml" />
+    <Content Include="Views\Home\CreateOrganizationAndCeo.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -220,6 +222,10 @@
     <ProjectReference Include="..\Auction.Infrastructure\EAuction.Infrastructure.csproj">
       <Project>{EE34C242-2597-4F41-9C6A-99287121A3D1}</Project>
       <Name>EAuction.Infrastructure</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\EAuction.BLL\EAuction.BLL.csproj">
+      <Project>{213F7F82-1029-4E37-9E95-D76E660980C1}</Project>
+      <Name>EAuction.BLL</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
