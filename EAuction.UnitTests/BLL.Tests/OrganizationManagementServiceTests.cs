@@ -37,7 +37,7 @@ namespace EAuction.UnitTests.BLL.Tests
             };
 
             OrganizationManagementService sut = new OrganizationManagementService();
-            sut.OpenOrganization(model, "2.134.87.32");
+            sut.OpenOrganization(model);
 
             Organization org = applicationDb.Organizations
                 .SingleOrDefault(p => p.FullName == "TestCompany_01" && p.IdentificationNumber == "22222222");

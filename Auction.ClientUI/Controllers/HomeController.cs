@@ -5,6 +5,7 @@ using EAuction.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Web;
 using System.Web.Mvc;
 
@@ -53,9 +54,13 @@ namespace Auction.ClientUI.Controllers
         }
 
         [HttpPost]
-        public ActionResult CreateOrganizationAndCeo(RegisterOrganizationViewModel organization)
+        public ActionResult CreateOrganizationAndCeo(RegisterOrganizationViewModel model)
         {
-            return View(organization);
+            if (ModelState.IsValid)
+            {
+                organizationManagement.OpenOrganization(model);
+            }
+            return RedirectToAction("Index");
         }
     }
 }

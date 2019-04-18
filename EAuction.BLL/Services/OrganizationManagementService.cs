@@ -18,9 +18,9 @@ namespace EAuction.BLL.Sevices
         private readonly ApplicationDbContext _applicationDbContext;
         private readonly IdentityDbContext _identityDbContext;
 
-        public void OpenOrganization(RegisterOrganizationViewModel model, string ip)
+        public void OpenOrganization(RegisterOrganizationViewModel model)
         {
-            var geoLocationInfo = GeoLocationInfo.GetGeolocationInfo(ip);
+            var geoLocationInfo = GeoLocationInfo.GetGeolocationInfo();
 
             if (model == null)
                 throw new Exception($"{typeof(RegisterOrganizationViewModel).Name} is null");
